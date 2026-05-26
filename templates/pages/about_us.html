@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}О нас{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <h2>
+        <img src="{% static 'images/icon-love.png' %}" class="icon-big"> О нас
+    </h2>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+
+            <div class="rules">
+
+            <p>Уважаемые пользователи, убедительная просьма при наличии вопросов предварительно прочитать наши ответы на частые вопросы перед тем, как писать администрации. Благодарим за понимание!</p>
+            <div class="alert alert-info mt-3" role="alert">
+                <p class="h5 mb-3">Вопрос-ответ</p>
+                
+                <div class="accordion accordion-flush" id="faqAccordion">
+                    
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+                                Как сменить логин?
+                            </button>
+                        </h2>
+                        <div id="faq1" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Для смены логина обратитесь в службу поддержки.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+                                Как удалить аккаунт?
+                            </button>
+                        </h2>
+                        <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Для удаления аккаунта обратитесь в службу поддержки.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
+                                Как сменить пароль?
+                            </button>
+                        </h2>
+                        <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Для смены пароля обратитесь в службу поддержки.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq4">
+                                Я забыл пароль, что мне делать?
+                            </button>
+                        </h2>
+                        <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Обратитесь в службу поддержки, указав ваше имя пользователя (ник) и контактные данные в письме на почту с темой письма "Восстановление пароля".
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq5">
+                                Я не понимаю как мне пользоваться сайтом, что мне делать?
+                            </button>
+                        </h2>
+                        <div id="faq5" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Воспользуйтесь руководством пользователя - <a href="/media/files/Manual.docx" target="_blank"><i class="fas fa-download"></i> Скачать руководство по эксплуатации</a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                </div>
+                
+                <div class="mt-4">
+                    <i class="fas fa-envelope me-2"></i>
+                    Для смены пароля или логина напишите в службу поддержки на электронную почту:
+                    <a href="mailto:admin@brain_arena.com" class="alert-link">admin@example.com</a>
+                </div>
+                
+            </div>
+
+            <p>Благодарности:</p>
+            <a href="https://www.flaticon.com/ru/" target="_blank" rel="noopener noreferrer"> Иконки от Freepik - Flaticon</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

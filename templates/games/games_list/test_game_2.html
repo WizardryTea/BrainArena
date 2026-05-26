@@ -1,0 +1,47 @@
+
+{% extends "games/base_game.html" %}
+
+{% block game_content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h2>Тестовая игра 2</h2>
+                    <p class="text-muted">Это тестовая игра для проверки системы</p>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <h4>Текущий статус: {{ session.status }}</h4>
+                        <p class="text-muted">Сессия создана: {{ session.created_at }}</p>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <h5>Доступные действия:</h5>
+                        <ul>
+                            <li><strong>win</strong> - завершить игру победой</li>
+                            <li><strong>lose</strong> - завершить игру поражением</li>
+                            <li><strong>surrender</strong> - сдаться</li>
+                        </ul>
+                    </div>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="submit" name="action" value="win" class="btn btn-success btn-lg w-100">
+                        <input type="submit" name="action" value="lose" class="btn btn-danger btn-lg w-100">
+                        <input type="submit" name="action" value="surrender" class="btn btn-warning btn-lg w-100">
+                    </form>
+                    
+                    {% if session.status != 'active' %}
+                    <div class="alert alert-success mt-4">
+                        <h5>Игра завершена!</h5>
+                        <p>Статус: {{ session.status }}</p>
+                        <p>Завершено: {{ session.finished_at }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

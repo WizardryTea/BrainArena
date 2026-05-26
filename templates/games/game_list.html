@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% load static %}
+
+<!-- Заголовок страницы -->
+{% block title %}Игры - Интеллектуальные игры{% endblock %}</title>
+
+<!-- Основной контент -->
+{% block content %}
+<div class="container">
+    <div class="page-header">
+        <h2>
+            <img src="{% static 'images/icon-game.png' %}" class="icon-big"> Список игр
+        </h2>
+    </div>
+
+    <!-- Раздел с играми -->
+    <div class="cards-grid">    
+        {% if games %}
+            {% for game in games %}
+                <div class="card game-card">
+                    <div class="card-body">
+                        {% if game.avatar %}
+                            <img src="/{{ game.avatar }}" alt="{{ game.name }}" class="game-icon" style="max-height: 100px; object-fit: contain;">
+                        {% else %}
+                            <i class="fas fa-gamepad game-icon"></i>
+                        {% endif %}
+                        <h5 class="game-title">{{ game.name }}</h5>
+                        <p class="game-description">{{ game.short_description|truncatewords:15|default:"Увлекательная интеллектуальная игра для развития ваших навыков" }}</p>
+                        <a href="{% url 'games:game_detail' game_slug=game.slug %}" class="btn btn-primary">
+                            Начать играть <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">
+                <div class="alert text-center">
+                    <i class="fas fa-info-circle"></i>
+                    Игры скоро появятся. Следите за обновлениями!
+                </div>
+            </div>
+        {% endif %}
+    </div>
+    <div class="text-zone">
+        <p>К сожалению, на данный момент это все доступные игры. Ожидайте обновлений и пополнения списка доступных игр!</p>
+        <p>Вы можете предложить свои варианты желаемых игр 
+            <a href="https://forms.gle/kzbgSQ545iexjUvn9" 
+            target="_blank" 
+            rel="noopener noreferrer">здесь</a>. Администрация сайта оставляет за собой окончательное решение о добавлении предложенного контента на сайт.
+        </p>
+    </div>
+</div>
+
+{% endblock %}
+
+<!-- Дополнительно стили/скрипты -->
+{% block extra_css %}{% endblock %}
+{% block extra_js %}{% endblock %}
+
+
+

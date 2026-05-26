@@ -1,0 +1,178 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Регистрация - Интеллектуальные игры{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-header">
+            <h3><i class="fas fa-user-plus"></i> Регистрация</h3>
+        </div>
+        
+        <div class="auth-body">
+            <form method="post">
+                {% csrf_token %}
+                
+                <div class="form-group">
+                    <label for="id_username">Имя пользователя <span class="required-star">*</span></label>
+                    <input type="text" 
+                           id="id_username" 
+                           name="username" 
+                           class="form-control {% if form.username.errors %}form-control-error{% endif %}"
+                           value="{{ form.username.value|default_if_none:'' }}" 
+                           required>
+                    {% if form.username.help_text %}
+                        <small class="form-help">{{ form.username.help_text }}</small>
+                    {% endif %}
+                    {% for error in form.username.errors %}
+                        <div class="form-error">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group col-md-6">
+                        <label for="id_first_name">Имя</label>
+                        <input type="text" 
+                               id="id_first_name" 
+                               name="first_name" 
+                               class="form-control {% if form.first_name.errors %}form-control-error{% endif %}"
+                               value="{{ form.first_name.value|default_if_none:'' }}">
+                        {% for error in form.first_name.errors %}
+                            <div class="form-error">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="form-group col-md-6">
+                        <label for="id_last_name">Фамилия</label>
+                        <input type="text" 
+                               id="id_last_name" 
+                               name="last_name" 
+                               class="form-control {% if form.last_name.errors %}form-control-error{% endif %}"
+                               value="{{ form.last_name.value|default_if_none:'' }}">
+                        {% for error in form.last_name.errors %}
+                            <div class="form-error">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="id_email">Email <span class="required-star">*</span></label>
+                    <input type="email" 
+                           id="id_email" 
+                           name="email" 
+                           class="form-control {% if form.email.errors %}form-control-error{% endif %}"
+                           value="{{ form.email.value|default_if_none:'' }}" 
+                           required>
+                    {% if form.email.help_text %}
+                        <small class="form-help">{{ form.email.help_text }}</small>
+                    {% endif %}
+                    {% for error in form.email.errors %}
+                        <div class="form-error">{{ error }}</div>
+                    {% endfor %}
+                </div>
+                
+                <div class="form-group">
+                    <label for="id_password1">Пароль <span class="required-star">*</span></label>
+                    <input type="password" 
+                           id="id_password1" 
+                           name="password1" 
+                           class="form-control {% if form.password1.errors %}form-control-error{% endif %}"
+                           required>
+                    {% if form.password1.help_text %}
+                        <small class="form-help">{{ form.password1.help_text }}</small>
+                    {% endif %}
+                    {% for error in form.password1.errors %}
+                        <div class="form-error">{{ error }}</div>
+                    {% endfor %}
+                </div>
+                
+                <div class="form-group">
+                    <label for="id_password2">Подтверждение пароля <span class="required-star">*</span></label>
+                    <input type="password" 
+                           id="id_password2" 
+                           name="password2" 
+                           class="form-control {% if form.password2.errors %}form-control-error{% endif %}"
+                           required>
+                    {% if form.password2.help_text %}
+                        <small class="form-help">{{ form.password2.help_text }}</small>
+                    {% endif %}
+                    {% for error in form.password2.errors %}
+                        <div class="form-error">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group col-md-4">
+                        <label for="id_gender">Пол</label>
+                        <select 
+                               id="id_gender" 
+                               name="gender" 
+                               class="form-control {% if form.gender.errors %}form-control-error{% endif %}">
+                            {% for value, text in form.gender.field.choices %}
+                                <option value="{{ value }}" {% if form.gender.value == value %}selected{% endif %}>{{ text }}</option>
+                            {% endfor %}
+                        </select>
+                        {% if form.gender.help_text %}
+                            <small class="form-help">{{ form.gender.help_text }}</small>
+                        {% endif %}
+                        {% for error in form.gender.errors %}
+                            <div class="form-error">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="form-group col-md-4">
+                        <label for="id_age">Возраст</label>
+                        <input type="number" 
+                               id="id_age" 
+                               name="age" 
+                               min="0"
+                               max="128"
+                               class="form-control {% if form.age.errors %}form-control-error{% endif %}"
+                               value="{{ form.age.value|default_if_none:'' }}">
+                        {% if form.age.help_text %}
+                            <small class="form-help">{{ form.age.help_text }}</small>
+                        {% endif %}
+                        {% for error in form.age.errors %}
+                            <div class="form-error">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="form-group col-md-4">
+                        <label for="id_education">Образование</label>
+                        <select 
+                               id="id_education" 
+                               name="education" 
+                               class="form-control {% if form.education.errors %}form-control-error{% endif %}">
+                            {% for value, text in form.education.field.choices %}
+                                <option value="{{ value }}" {% if form.education.value == value %}selected{% endif %}>{{ text }}</option>
+                            {% endfor %}
+                        </select>
+                        {% if form.education.help_text %}
+                            <small class="form-help">{{ form.education.help_text }}</small>
+                        {% endif %}
+                        {% for error in form.education.errors %}
+                            <div class="form-error">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn btn-primary btn-full">
+                    <i class="fas fa-user-plus"></i> Зарегистрироваться
+                </button>
+                
+                <div class="auth-agreement">
+                    <p>Регистрируясь на нашем сайте, вы автоматически соглашаетесь с действующей 
+                    <a href="{% url 'confidential' %}">политикой конфиденциальности</a></p>
+                </div>
+            </form>
+            
+            <hr class="auth-divider">
+            
+            <div class="auth-footer">
+                <p>Уже есть аккаунт? <a href="{% url 'users:login' %}">Войти</a></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

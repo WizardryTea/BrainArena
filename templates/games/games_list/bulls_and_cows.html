@@ -1,0 +1,454 @@
+{% extends "games/base_game.html" %}
+{% load static %}
+
+{% block game_content %}
+
+
+<style>
+{% block background_style %}background-nebo{% endblock %}
+
+
+.shifr-game {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+    font-family: var(--font-fat-numbers);
+}
+
+.game-input-section {
+    text-align: center;
+    margin-bottom: 30px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.number-input {
+    font-size: 2rem;
+    text-align: center;
+    letter-spacing: 15px;
+    width: 200px;
+    padding: 10px;
+    margin-bottom: 15px;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+
+    font-weight: bold;
+    
+}
+
+.submit-btn {
+    font-size: 1.2rem;
+    padding: 10px 30px;
+    display: block;
+    margin: 0 auto;
+}
+
+.game-info {
+    text-align: center;
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: rgba(0, 0, 0, 0.03);
+    border-radius: 8px;
+}
+
+.debug-area {
+    text-align: center;
+    margin-top: 20px;
+    padding: 10px;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 0.85rem;
+    color: #6c757d;
+}
+
+.error-message {
+    color: #dc3545;
+    text-align: center;
+    margin-top: 10px;
+}
+
+.success-message {
+    color: #198754;
+    text-align: center;
+    margin-top: 10px;
+}
+
+.attempts-counter {
+    font-size: 1.1rem;
+    color: #6c757d;
+}
+
+.level-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    background-color: #0d6efd;
+    color: white;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    margin-bottom: 10px;
+}
+
+.bull {
+    color: #dc3545;
+}
+
+.cow {
+    color: #0d6efd;
+}
+
+
+.shifr-game {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.game-input-section {
+    text-align: center;
+    margin-bottom: 30px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.number-input {
+    font-size: 2rem;
+    text-align: center;
+    letter-spacing: 15px;
+    width: 200px;
+    padding: 10px;
+    margin-bottom: 15px;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+
+    font-weight: bold;
+    
+}
+
+.history-table{
+    font-size: large;
+}
+
+.history-table tbody td {
+    font-size: 3rem;
+}
+
+
+@media (max-width: 1600px) {
+    .history-table table,
+    .history-table td {
+        font-size: 1rem !important;
+        line-height: 1.1 !important;
+        padding: 0.25rem 0.01rem !important;
+        letter-spacing: -0.02em;
+    }
+    .history-table td.guess-number  {
+        font-size: 2rem !important;
+        line-height: 1.1 !important;
+        padding: 0.25rem 0.01rem !important;
+        letter-spacing: -0.02em;
+    }
+}
+
+</style>
+
+<div class="shifr-game">
+    <div class="game-info">
+        <span class="level-badge">
+            {% if session.data.allow_repeat %}Режим: с повторами{% else %}Режим: без повторов{% endif %}
+        </span>
+        <p class="attempts-counter">
+            Попыток: <span style="font-family: var(--font-fat-numbers);" id="attempts-count">{{ session.data.attempts|default:0 }}</span>
+        </p>
+        <p class="text-muted small mb-0">
+            Введите 4-значное число и нажмите "Проверить"
+        </p>
+    </div>
+
+    <div class="game-input-section">
+        <form id="guess-form" method="post">
+            {% csrf_token %}
+            <input type="text" 
+                   id="guess-input" 
+                   class="form-control number-input" 
+                   name="guess" 
+                   maxlength="4" 
+                   pattern="[0-9]{4}"
+                   placeholder="0000"
+                   autocomplete="off"
+                   inputmode="numeric">
+            <button type="submit" class="btn btn-primary submit-btn" id="submit-btn">
+                Проверить
+            </button>
+        </form>
+        <div id="message-area"></div>
+    </div>
+
+    <div class="history-section">
+        <h5 class="text-center mb-3">История попыток</h5>
+        <div class="table-responsive">
+            <table class="table history-table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Попытка</th>
+                        <th>Комбинация</th>
+                        <th title="Цифра угадана и стоит на своём месте">Быки (B)</th>
+                        <th title="Цифра угадана, но стоит на другом месте">Коровы (K)</th>
+                    </tr>
+                </thead>
+                <tbody id="history-body">
+                    {% for attempt in session.data.history %}
+                    <tr>
+                        <td>{{ attempt.attempt }}</td>
+                        <td class="guess-number">{{ attempt.guess }}</td>
+                        <td>
+                            <span class="bull" title="Цифра угадана и стоит на своём месте">
+                                B: {{ attempt.bulls }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="cow" title="Цифра угадана, но стоит на другом месте">
+                                K: {{ attempt.cows }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Debug для отладки
+    <div class="debug-area" id="debug-area" style="display: none;">
+        <strong>Debug:</strong>
+        <span id="debug-output"></span>
+    </div>
+     -->
+</div>
+
+<script>
+const guessForm = document.getElementById('guess-form');
+const guessInput = document.getElementById('guess-input');
+const submitBtn = document.getElementById('submit-btn');
+const messageArea = document.getElementById('message-area');
+const historyBody = document.getElementById('history-body');
+const attemptsCount = document.getElementById('attempts-count');
+const debugArea = document.getElementById('debug-area');
+const debugOutput = document.getElementById('debug-output');
+
+// Для отладки
+function showDebug(message) {
+    if (debugArea && debugOutput) {
+        debugArea.style.display = 'block';
+        debugOutput.textContent = message;
+    }
+}
+
+// Разрешаем только цифры
+guessInput.addEventListener('input', function(e) {
+    this.value = this.value.replace(/[^0-9]/g, '').slice(0, 4);
+    // Включаем/отключаем кнопку в зависимости от длины ввода
+    submitBtn.disabled = this.value.length !== 4;
+});
+
+// Инициализируем состояние кнопки при загрузке
+submitBtn.disabled = guessInput.value.length !== 4;
+
+guessForm.addEventListener('submit', function(e) {
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    
+    const guess = guessInput.value;
+    
+    // Валидация
+    if (guess.length !== 4) {
+        showMessage('Введите 4-значное число!', 'error');
+        guessInput.value = '';
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = 'Проверить';
+        return;
+    }
+    
+    // Проверка на повторения цифр в режиме без повторов
+    const allowRepeat = {% if session.data.allow_repeat %}true{% else %}false{% endif %};
+    if (!allowRepeat) {
+        const uniqueDigits = new Set(guess.split(''));
+        if (uniqueDigits.size !== 4) {
+            showMessage('Нельзя вводить цифры с повторениями в данном режиме!', 'error');
+            guessInput.value = '';
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = 'Проверить';
+            return;
+        }
+    }
+    
+    // В игре «Быки и коровы» число может начинаться с нуля
+    // Отправляем запрос на сервер
+    makeGuess(guess);
+});
+
+function makeGuess(guess) {
+    // Блокируем кнопку во время запроса
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = 'Проверка...';
+    
+    showDebug('Отправка: ' + guess);
+    
+    fetch('', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': getCookie('csrftoken'),
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: `action={"type":"guess","number":"${guess}"}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Server response:', data);
+        showDebug('Ответ: ' + JSON.stringify(data));
+        
+        // Проверяем, завершена ли игра
+        if (data.status && data.status !== 'active') {
+            // Игра завершена - показываем модальное окно
+            if (data.modal_html) {
+                const redirectUrl = data.redirectUrl || data.redirect_url || '/games/';
+                showGameEndModal(data.modal_html, redirectUrl);
+            }
+            return;
+        }
+        
+        if (data.success) {
+            // Очищаем сообщение об ошибке
+            clearMessage();
+            
+            // Очищаем поле ввода
+            guessInput.value = '';
+            guessInput.focus();
+            
+            // Обновляем состояние из ответа сервера
+            updateState(data.state);
+        } else if (data.error) {
+            // Показываем ошибку
+            showMessage(data.error, 'error');
+            showDebug('Ошибка: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showMessage('Ошибка соединения с сервером', 'error');
+        showDebug('Ошибка: ' + error);
+    })
+    .finally(() => {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = 'Проверить';
+    });
+}
+
+function updateState(state) {
+    // Обновляем счетчик попыток
+    attemptsCount.textContent = state.attempts;
+    
+    // Обновляем таблицу истории
+    if (state.history && state.history.length > 0) {
+        const lastAttempt = state.history[state.history.length - 1];
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${lastAttempt.attempt}</td>
+            <td class="guess-number">${lastAttempt.guess}</td>
+            <td>
+                <span class="bull" title="Цифра угадана и стоит на своём месте">
+                    B: ${lastAttempt.bulls}
+                </span>
+            </td>
+            <td>
+                <span class="cow" title="Цифра угадана, но стоит на другом месте">
+                    K: ${lastAttempt.cows}
+                </span>
+            </td>
+        `;
+        historyBody.appendChild(row);
+        
+        // Прокручиваем к последней записи
+        row.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+}
+
+function showMessage(text, type) {
+    messageArea.innerHTML = `<div class="${type}-message">${text}</div>`;
+    setTimeout(() => clearMessage(), 3000);
+}
+
+function clearMessage() {
+    messageArea.innerHTML = '';
+}
+
+function showGameEndModal(modalHtml, redirectUrl) {
+    // Удаляем старое модальное окно, если оно есть
+    const existingModal = document.getElementById('gameEndModal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+    
+    // Создаем временный контейнер для парсинга HTML
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = modalHtml;
+    
+    // Находим модальное окно
+    const modalElement = tempDiv.querySelector('#gameEndModal');
+    
+    if (modalElement) {
+        // Вставляем модальное окно в DOM
+        document.body.appendChild(modalElement);
+        
+        // Показываем модальное окно
+        modalElement.classList.remove('fade');
+        const modal = new bootstrap.Modal(modalElement, {
+            backdrop: 'static',
+            keyboard: false
+        });
+        modal.show();
+        
+        // Запускаем таймер обратного отсчета
+        let countdown = 5;
+        const countdownElement = document.getElementById('countdownTimer');
+        
+        const countdownInterval = setInterval(function() {
+            countdown--;
+            if (countdownElement) {
+                countdownElement.textContent = countdown;
+            }
+            
+            if (countdown <= 0) {
+                clearInterval(countdownInterval);
+                window.location.href = redirectUrl;
+            }
+        }, 1000);
+    }
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+// Фокус на поле ввода при загрузке
+guessInput.focus();
+</script>
+
+{% endblock %}

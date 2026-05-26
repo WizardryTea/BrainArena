@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Выбор действия - {{ game.name }}{% endblock %}
+
+{% block content %}
+<div class="choice-container">
+    <div class="choice-card">
+        <div class="choice-header">
+            <div class="choice-header-content">
+                {% if game.avatar %}
+                    <img src="/{{ game.avatar }}" alt="{{ game.name }}" class="choice-game-icon">
+                {% endif %}
+                <div>
+                    <h4>{{ game.name }}</h4>
+                    <p class="choice-subtitle">У вас уже есть активная сессия этой игры</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="choice-body">
+            <div class="alert alert-info">
+                <h6>Активная сессия #{{ active_session.id }}</h6>
+                <p>Начата: {{ active_session.created_at|date:"d.m.Y H:i" }}</p>
+                {% if level_name %}
+                    <p>Уровень: {{ level_name }}</p>
+                {% endif %}
+            </div>
+            
+            <div class="choice-options">
+                <div class="choice-option choice-option-success">
+                    <div class="choice-option-content">
+                        <h5><i class="fas fa-play text-success"></i> Продолжить игру</h5>
+                        <p class="flex-to-bottom">Вернуться к текущей сессии</p>
+                        <a href="{% url 'games:game_play' session_id=active_session.id %}" 
+                           class="btn btn-success btn-choice">
+                            <i class="fas fa-play"></i> Продолжить
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="choice-option choice-option-warning">
+                    <div class="choice-option-content">
+                        <h5><i class="fas fa-plus"></i> Начать новую игру</h5>
+                        <p class="flex-to-bottom">Завершить текущую сессию и начать новую</p>
+                        <button type="button" class="btn btn-warning btn-choice" 
+                                onclick="confirmStartNewGame({{ game.id }}, '{{ requested_level|default:"" }}')">
+                            <i class="fas fa-plus"></i> Начать новую
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="choice-back">
+                <a href="{% url 'games:game_detail' game_slug=game.slug %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Назад к игре
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Подключаем модальное окно подтверждения -->
+{% include 'games/includes/attention_window.html' %}
+{% endblock %}

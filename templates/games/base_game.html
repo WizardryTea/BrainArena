@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="game-container">
+    <div class="game-header">
+        <div class="game-header-content">
+            <div class="game-title-section">
+                <h1 class="game-title">
+                    <img src="/{{ session.game.avatar }}" alt="{{ session.game.name }}" class="game-icon-img">
+                    <span>{{ session.game.name }}</span>
+                </h1>
+            </div>
+            <div class="game-controls-section">
+                <div class="timer-container">
+                    <img src="{% static 'images/icon-time.png' %}" alt="Время" class="icon">
+                    <span id="game-timer" class="timer-badge">00:00:00</span>
+                </div>
+                <button type="button" class="btn btn-danger surrender-btn" data-bs-toggle="modal" data-bs-target="#surrenderModal">
+                    <img src="{% static 'images/icon-flag.png' %}" alt="Сдаться" class="icon"> Сдаться
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="game-content">
+        {% block game_content %}{% endblock %}
+    </div>
+</div>
+
+<!-- Модальное окно завершения игры (показывается только если игра завершена и есть game_end_html) -->
+{% if session.status != 'active' and game_end_html %}
+    {% include 'games/includes/game_end_modal.html' %}
+{% endif %}
+
+<!-- Modal подтверждения сдачи игры (Bootstrap модальное окно) -->
+<div class="modal fade" id="surrenderModal" tabindex="-1" aria-labelledby="surrenderModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="surrenderModalLabel">
+                    <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                    Подтверждение сдачи
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p><strong>Бросить игру?</strong></p>
+                <p>Вы действительно хотите сдаться?</p>
+                <p class="text-muted small">Эта игра будет перемещена в список "Брошено" и вы не сможете к ней вернуться.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Продолжить игру</button>
+                <form method="post" action="{% url 'games:surrender_game' session.id %}" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">
+                        <img src="{% static 'images/icon-flag.png' %}" alt="Сдаться" class="icon me-2"> Бросить игру
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Таймер игры
+    const startTime = new Date('{{ session.created_at|date:"c" }}');
+    const timerElement = document.getElementById('game-timer');
+    let timerInterval;
+    
+    function updateTimer() {
+        const now = new Date();
+        const diff = now - startTime;
+        
+        const hours = Math.floor(diff / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+        
+        const timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        timerElement.textContent = timeString;
+    }
+    
+    // Проверяем, активна ли игра
+    const isActive = {% if session.status == 'active' %}true{% else %}false{% endif %};
+    
+    if (isActive) {
+        // Обновляем таймер каждую секунду только если игра активна
+        timerInterval = setInterval(updateTimer, 1000);
+    }
+    
+    // Инициализируем таймер (даже если игра не активна, чтобы показать время)
+    updateTimer();
+    
+    // Инициализация модального окна подтверждения сдачи
+    const surrenderBtn = document.querySelector('.surrender-btn');
+    const surrenderModal = new bootstrap.Modal(document.getElementById('surrenderModal'));
+    const surrenderForm = document.querySelector('#surrenderModal form');
+    const surrenderSubmitBtn = surrenderForm.querySelector('button[type="submit"]');
+    
+    if (surrenderBtn && surrenderModal) {
+        // Явный обработчик клика для гарантированного открытия модального окна
+        surrenderBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            surrenderModal.show();
+        });
+    }
+    
+    if (surrenderForm) {
+        surrenderForm.addEventListener('submit', function(e) {
+            console.log('Игрок сдается в игре');
+            
+            // Блокируем кнопку после нажатия чтобы предотвратить двойные клики
+            surrenderSubmitBtn.disabled = true;
+            surrenderSubmitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Обработка...';
+        });
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex align-items-center">
+                    {% if game.avatar %}
+                        <img src="/{{ game.avatar }}" alt="{{ game.name }}" class="me-3" style="max-height: 80px; object-fit: contain;">
+                    {% endif %}
+                    <div>
+                        <h2>{{ game.name }}</h2>
+                        <p class="text-muted mb-0">{{ game.slug }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body img-open-space">
+                <div class="row">
+                    <div class="col-md-12">
+                        
+                        {% if active_session %}
+                        <div class="alert d-flex align-items-center justify-content-between mb-4">
+                            <div>
+                                <h6 class="mb-0">У вас есть незавершенная игра</h6>
+                                <small class="text-muted">Вы можете продолжить игру с того же места где остановились</small>
+                            </div>
+                        <a href="{% url 'games:game_play' active_session.id %}" class="btn btn-warning btn-continue-game">
+                                <i class="fas fa-forward me-1"></i> Продолжить игру
+                            </a>
+                        </div>
+                        {% endif %}
+                        
+                        <h2 class="mt-4">Выберите режим:</h2>
+                        
+                        {% if levels %}
+                            <!-- Если игра имеет уровни сложности -->
+                            <div class="row levels">
+                                {% for level in levels %}
+                                <div class="col-md-4 mb-3">
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <h6 class="card-title">{{ level.name }}</h6>
+                                            <p class="card-text mb-2">
+                                                {{ level.html|safe }}
+                                            </p>
+                                            <a href="{% url 'games:start' game.id %}?level={{ level.key }}" class="btn btn-primary btn-block">
+                                                <i class="fas fa-play"></i> Начать
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <!-- Иначе условий для начала нет, начинаем стандартно -->
+                            <a href="{% url 'games:start' game.id %}" class="btn btn-primary btn-lg mb-3">
+                                <i class="fas fa-play"></i> Начать игру
+                            </a>
+                        {% endif %}
+
+                        <h2>Описание:</h2>
+                        <p>{{ game.description|safe }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+</div>
+{% endblock %}

@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Главная страница - Интеллектуальные игры{% endblock %}
+
+{% block extra_css %}
+<style>
+@media (max-width: 576px) {
+    .index-stats-card {
+        padding: 0.2rem !important;
+        font-size: 0.65rem;
+    }
+    .index-stats-card .stats-number {
+        font-size: 1.3rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Добро пожаловать на сайт Brain Arena!</h1>
+</div>
+
+<!-- Общая статистика сайта -->
+<div class="index-stats">
+    <div class="index-stats-card text-center">
+        <h2 class="stats-number">{{ total_users }}</h2>
+        <p>Зарегистрированных пользователей:</p>
+    </div>
+    <div class="index-stats-card text-center">
+        <h2 class="stats-number">{{ total_sessions }}</h2>
+        <p>Cыграно игр:</p>
+    </div>
+</div>
+
+<div class="col-12">
+    <h2 class="text-center mb-4">Дорогие пользователи</h2>
+</div>
+<div class="col-12">
+    <p>Смартфон подсказывает что купить в магазине, навигатор ведет по маршруту, калькулятор считает за нас. Мозг привыкает к комфорту и перестает напрягаться. В результате – забываем имена знакомых, теряем нить разговора, не можем сосредоточиться на чтении больше пяти минут.</p>
+    <p>Регулярные умственные тренировки помогают поддерживать когнитивные функции в тонусе, однако ходить на курсы по развитию памяти или покупать специальные пособия готовы не все. Гораздо проще открыть браузер и позаниматься прямо за компьютером – в удобное время, без расписания и абонементов.</p>
+    <p>В интернете можно найти десятки сайтов с головоломками, логическими играми и тренажерами для мозга. Часть из них предлагает классические судоку и кроссворды, другие – специализированные упражнения на память и внимание. Brain Arena представляет собой ресурс на русском языке, который подходит и взрослым, и детям, работает в браузере и не требует установки дополнительных программ.</p>
+    <p>Наш сервис состоит из игр-упражнений, что делает тренировки не скучной обязанностью, а приятным времяпрепровождением.</p>
+    <p>Добро пожаловать на Brain Arena - платформу для интеллектуальных игр и развития ваших когнитивных способностей.</p>
+</div>
+
+<!-- Раздел с играми -->
+<div>
+    <h2 class="text-center">Популярные игры</h2>
+</div>
+
+<div class="populate-games">
+    <div class="cards-grid">
+        {% if games %}
+            {% for game in games %}
+                <div class="card game-card">
+                    <div class="card-body">
+                        {% if game.avatar %}
+                            <img src="/{{ game.avatar }}" alt="{{ game.name }}" style="max-height: 100px; object-fit: contain; margin-bottom: 1rem;">
+                        {% elif game.icon %}
+                            <i class="{{ game.icon }} fa-3x" style="color: var(--primary); margin-bottom: 1rem;"></i>
+                        {% else %}
+                            <i class="fas fa-gamepad fa-3x" style="color: var(--primary); margin-bottom: 1rem;"></i>
+                        {% endif %}
+                        <h3>{{ game.name }}</h3>
+                        <p class="game-description">{{ game.short_description|truncatewords:15|default:"Увлекательная интеллектуальная игра для развития ваших навыков" }}</p>
+                        <a href="{% url 'games:game_detail' game_slug=game.slug %}" class="btn btn-outline">
+                            Начать играть <i class="fas fa-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12">
+                <div class="alert text-center">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Игры скоро появятся. Следите за обновлениями!
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

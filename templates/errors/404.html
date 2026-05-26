@@ -1,0 +1,21 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Страница не найдена — 404</title>
+    <link rel="icon" type="image/png" href="{% static 'images/logo.png' %}">
+    <link href="{% static 'css/style.css' %}" rel="stylesheet">
+</head>
+<body>
+    <div class="error-page">
+        <div>
+            <img src="{% static 'images/404.png' %}" alt="404">
+            <h1>Ошибка 404</h1>
+            <p>Извините, но страница, которую вы ищете, не существует или была перемещена.</p>
+            <a href="{% url 'home' %}" class="btn-primary">На главную</a>
+        </div>
+    </div>
+</body>
+</html>

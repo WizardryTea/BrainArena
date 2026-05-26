@@ -1,0 +1,493 @@
+{% extends "games/base_game.html" %}
+
+{% block game_content %}
+<style>
+.game-2048-container {
+    max-width: 500px;
+    margin: 0 auto;
+    font-family: 'Clear Sans', 'Helvetica Neue', Arial, sans-serif;
+}
+
+.game-header-sub {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    margin-bottom: 20px;
+    margin-top: 20px;
+}
+
+.scores-container {
+    display: flex;
+    gap: 10px;
+}
+
+.score-box {
+    background: #bbada0;
+    padding: 8px 20px;
+    border-radius: 6px;
+    color: white;
+    text-align: center;
+    min-width: 80px;
+}
+
+.score-label {
+    font-size: 12px;
+    text-transform: uppercase;
+    font-weight: bold;
+    opacity: 0.8;
+}
+
+.score-value {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.game-board {
+    background: #bbada0;
+    border-radius: 6px;
+    padding: 12px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    position: relative;
+}
+
+.tile {
+    aspect-ratio: 1;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+    font-weight: bold;
+    color: #776e65;
+    transition: transform 0.12s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    transform: translate(0, 0) scale(1);
+    will-change: transform;
+    z-index: 1;
+}
+
+.tile-new {
+    animation: tileAppear 0.2s ease-in-out;
+}
+
+.tile-merged {
+    animation: tileMerge 0.2s ease-in-out;
+}
+
+@keyframes tileAppear {
+    0% {
+        opacity: 0;
+        transform: scale(0);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes tileMerge {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.2);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.score-value {
+    transition: transform 0.1s ease-out;
+}
+
+.score-value.updated {
+    animation: scorePop 0.3s ease-out;
+}
+
+@keyframes scorePop {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.3);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.switch-container{
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.tile-0 { background: #cdc1b4; }
+
+.tile-2 { background: #eee4da; }
+.tile-4 { background: #ede0c8; }
+.tile-8 { background: #f2b179; color: #f9f6f2; }
+.tile-16 { background: #f59563; color: #f9f6f2; }
+.tile-32 { background: #f67c5f; color: #f9f6f2; }
+.tile-64 { background: #f65e3b; color: #f9f6f2; }
+.tile-128 { background: #edcf72; color: #f9f6f2; font-size: 30px; }
+.tile-256 { background: #edcc61; color: #f9f6f2; font-size: 30px; }
+.tile-512 { background: #edc850; color: #f9f6f2; font-size: 30px; }
+.tile-1024 { background: #edc53f; color: #f9f6f2; font-size: 24px; }
+.tile-2048 { background: #edc22e; color: #f9f6f2; font-size: 24px; }
+.tile-4096 { background: #ee5832; color: #f9f6f2; font-size: 20px; }
+.tile-8192 { background: #d01212; color: #f9f6f2; font-size: 20px; }
+.tile-16384 { background: #991b1b; color: #f9f6f2; font-size: 18px; }
+.tile-32768 { background: #831010; color: #f9f6f2; font-size: 16px; }
+.tile-65536 { background: #5c0a0a; color: #f9f6f2; font-size: 14px; }
+
+.game-info {
+    margin-top: 20px;
+    text-align: center;
+    color: #776e65;
+}
+
+@media (max-width: 520px) {
+    .tile {
+        font-size: 24px;
+    }
+    .tile-128, .tile-256, .tile-512 { font-size: 20px; }
+    .tile-1024, .tile-2048 { font-size: 16px; }
+    .tile-4096, .tile-8192 { font-size: 14px; }
+    .tile-16384 { font-size: 12px; }
+    .tile-32768 { font-size: 11px; }
+    .tile-65536 { font-size: 10px; }
+}
+</style>
+
+<div class="game-2048-container">
+    <div class="switch-container ms-3">
+            <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="touchAreaSwitch" checked>
+                <label class="form-check-label" for="touchAreaSwitch">
+                    <i class="fas fa-hand-pointer"></i> Касания только к полю
+                </label>
+            </div>
+        </div>
+    <div class="game-header-sub">
+        
+        <div class="scores-container">
+            <div class="score-box">
+                <div class="score-label">Счет</div>
+                <div class="score-value">{{ session.data.score|default:0 }}</div>
+            </div>
+            <div class="score-box">
+                <div class="score-label">Рекорд</div>
+                <div class="score-value">{{ session.data.best_score|default:0 }}</div>
+            </div>
+        </div>
+    </div>
+
+    {% if session.status == 'active' %}
+    <div class="game-board">
+        {% for row in session.data.board %}
+            {% for tile in row %}
+                <div class="tile {% if tile >= 65536 %}tile-65536{% elif tile >= 32768 %}tile-32768{% elif tile >= 16384 %}tile-16384{% elif tile >= 8192 %}tile-8192{% elif tile >= 4096 %}tile-4096{% elif tile >= 2048 %}tile-2048{% elif tile >= 1024 %}tile-1024{% else %}tile-{{ tile }}{% endif %}">
+                    {% if tile != 0 %}{{ tile }}{% endif %}
+                </div>
+            {% endfor %}
+        {% endfor %}
+    </div>
+
+    <div class="game-info">
+        <p>Для управления используйте стрелки на клавиатуре ↑ ↓ ← → WASD или свайпы пальцем по игровой области для перемещения плиток</p>
+    </div>
+    {% else %}
+    <div class="alert alert-info text-center">
+        <h4>Игра завершена!</h4>
+        <p>Финальный счет: <strong>{{ session.data.score|default:0 }}</strong></p>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+// Храним предыдущее состояние доски для определения изменений
+let previousBoard = null;
+
+// Общая функция отправки хода через AJAX без перезагрузки страницы
+function submitMove(action) {
+    {% if session.status == 'active' %}
+    fetch(window.location.href, {
+        method: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: 'action=' + encodeURIComponent(action)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'active') {
+            // Обновляем состояние игрового поля
+            updateBoard(data.state.board);
+            updateScore(data.state.score, data.state.best_score);
+        } else if (data.redirect_url) {
+            // Игра закончилась - переходим на страницу завершения
+            window.location.href = data.redirect_url;
+        }
+    })
+    .catch(error => {
+        console.error('Ошибка отправки хода:', error);
+    });
+    {% endif %}
+}
+
+// Обновление игрового поля с плавной анимацией перемещения
+function updateBoard(board) {
+    const tiles = document.querySelectorAll('.tile');
+    const tileSize = tiles[0].offsetWidth + 12; // Размер плитки + отступ
+    
+    // Сначала сбрасываем все трансформации
+    tiles.forEach(tile => {
+        tile.style.transform = 'translate(0, 0) scale(1)';
+        tile.classList.remove('tile-new', 'tile-merged');
+    });
+    
+    // Получаем игровое поле для рефлоу
+    const gameBoard = document.querySelector('.game-board');
+    
+    // Принудительный рефлоу чтобы сбросы применились перед новыми анимациями
+    void gameBoard.offsetWidth;
+    
+    // Расчитываем и применяем перемещение для каждой плитки
+    board.forEach((row, rowIndex) => {
+        row.forEach((value, colIndex) => {
+            const index = rowIndex * 4 + colIndex;
+            const tile = tiles[index];
+            
+            const oldValue = previousBoard ? previousBoard[rowIndex][colIndex] : 0;
+            
+            // Обновляем внешний вид плитки
+            tile.className = 'tile';
+            if (value >= 65536) {
+                tile.classList.add('tile-65536');
+            } else if (value >= 32768) {
+                tile.classList.add('tile-32768');
+            } else if (value >= 16384) {
+                tile.classList.add('tile-16384');
+            } else if (value >= 8192) {
+                tile.classList.add('tile-8192');
+            } else if (value >= 4096) {
+                tile.classList.add('tile-4096');
+            } else if (value >= 2048) {
+                tile.classList.add('tile-2048');
+            } else if (value >= 1024) {
+                tile.classList.add('tile-1024');
+            } else {
+                tile.classList.add('tile-' + value);
+            }
+            
+            tile.textContent = value !== 0 ? value : '';
+            
+            // Определяем тип анимации
+            if (previousBoard) {
+                if (oldValue === 0 && value !== 0) {
+                    // Новая плитка - анимация появления после завершения движения
+                    setTimeout(() => {
+                        tile.classList.add('tile-new');
+                    }, 120);
+                } else if (oldValue !== 0 && value > oldValue && value === oldValue * 2) {
+                    // Слияние плиток - анимация после завершения движения
+                    setTimeout(() => {
+                        tile.classList.add('tile-merged');
+                        tile.style.zIndex = '10';
+                    }, 120);
+                    
+                    setTimeout(() => {
+                        tile.style.zIndex = '1';
+                    }, 300);
+                }
+            }
+        });
+    });
+    
+    // Сохраняем текущее состояние для следующего хода
+    previousBoard = board.map(row => [...row]);
+}
+
+// Обновление счета и рекорда
+function updateScore(score, bestScore) {
+    const scoreElements = document.querySelectorAll('.score-value');
+    
+    if (scoreElements[0]) {
+        const oldScore = parseInt(scoreElements[0].textContent);
+        if (oldScore !== score) {
+            scoreElements[0].classList.remove('updated');
+            // Принудительный рефлоу для перезапуска анимации
+            void scoreElements[0].offsetWidth;
+            scoreElements[0].textContent = score;
+            scoreElements[0].classList.add('updated');
+        }
+    }
+    
+    if (scoreElements[1]) {
+        const oldBest = parseInt(scoreElements[1].textContent);
+        if (oldBest !== bestScore) {
+            scoreElements[1].classList.remove('updated');
+            void scoreElements[1].offsetWidth;
+            scoreElements[1].textContent = bestScore;
+            scoreElements[1].classList.add('updated');
+        }
+    }
+}
+
+// Инициализация предыдущего состояния при загрузке страницы
+document.addEventListener('DOMContentLoaded', function() {
+    const tiles = document.querySelectorAll('.tile');
+    previousBoard = Array(4).fill().map(() => Array(4).fill(0));
+    
+    tiles.forEach((tile, index) => {
+        const row = Math.floor(index / 4);
+        const col = index % 4;
+        const value = tile.textContent ? parseInt(tile.textContent) : 0;
+        previousBoard[row][col] = value;
+    });
+});
+
+// Обработка клавиатуры
+document.addEventListener('keydown', function(e) {
+    let action = null;
+    
+    switch(e.key) {
+        case 'ArrowLeft':
+        case 'a':
+        case 'A':
+        case 'ф':
+        case 'Ф':
+            action = 'left';
+            break;
+        case 'ArrowRight':
+        case 'd':
+        case 'D':
+        case 'в':
+        case 'В':
+            action = 'right';
+            break;
+        case 'ArrowUp':
+        case 'w':
+        case 'W':
+        case 'ц':
+        case 'Ц':
+            action = 'up';
+            break;
+        case 'ArrowDown':
+        case 's':
+        case 'S':
+        case 'ы':
+        case 'Ы':
+            action = 'down';
+            break;
+    }
+    
+    if (action) {
+        e.preventDefault();
+        submitMove(action);
+    }
+});
+
+// Обработка сенсорных свайпов только внутри игрового поля
+let touchStartX = 0;
+let touchStartY = 0;
+const minSwipeDistance = 30; // Минимальное расстояние в пикселях для срабатывания свайпа
+
+let currentTouchElement = null;
+
+// Функции обработчиков касаний
+function handleTouchStart(e) {
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+}
+
+function handleTouchEnd(e) {
+    if (!touchStartX || !touchStartY) return;
+    
+    const touchEndX = e.changedTouches[0].clientX;
+    const touchEndY = e.changedTouches[0].clientY;
+    
+    const deltaX = touchEndX - touchStartX;
+    const deltaY = touchEndY - touchStartY;
+    
+    let action = null;
+    
+    // Определяем основное направление свайпа
+    if (Math.abs(deltaX) > Math.abs(deltaY)) {
+        // Горизонтальный свайп
+        if (Math.abs(deltaX) > minSwipeDistance) {
+            action = deltaX > 0 ? 'right' : 'left';
+        }
+    } else {
+        // Вертикальный свайп
+        if (Math.abs(deltaY) > minSwipeDistance) {
+            action = deltaY > 0 ? 'down' : 'up';
+        }
+    }
+    
+    if (action) {
+        e.preventDefault();
+        submitMove(action);
+    }
+    
+    // Сброс координат
+    touchStartX = 0;
+    touchStartY = 0;
+}
+
+function handleTouchMove(e) {
+    e.preventDefault();
+}
+
+// Функция для установки нужного элемента для касаний
+function setTouchElement(useBoardOnly) {
+    // Удаляем старые обработчики если они есть
+    if (currentTouchElement) {
+        currentTouchElement.removeEventListener('touchstart', handleTouchStart);
+        currentTouchElement.removeEventListener('touchend', handleTouchEnd);
+        currentTouchElement.removeEventListener('touchmove', handleTouchMove);
+    }
+    
+    // Выбираем нужный элемент
+    const selector = useBoardOnly ? '.game-board' : '.game-content';
+    currentTouchElement = document.querySelector(selector);
+    
+    if (currentTouchElement) {
+        currentTouchElement.addEventListener('touchstart', handleTouchStart, { passive: true });
+        currentTouchElement.addEventListener('touchend', handleTouchEnd);
+        currentTouchElement.addEventListener('touchmove', handleTouchMove, { passive: false });
+    }
+}
+
+// Инициализация переключателя при загрузке страницы
+document.addEventListener('DOMContentLoaded', function() {
+    const touchSwitch = document.getElementById('touchAreaSwitch');
+    
+    // Загружаем сохранённое состояние из localStorage
+    const savedState = localStorage.getItem('game2048_touch_board_only');
+    
+    let useBoardOnly = true;
+    if (savedState !== null) {
+        useBoardOnly = savedState === 'true';
+    }
+    
+    touchSwitch.checked = useBoardOnly;
+    setTouchElement(useBoardOnly);
+    
+    // Обработчик изменения переключателя
+    touchSwitch.addEventListener('change', function(e) {
+        const useBoard = e.target.checked;
+        setTouchElement(useBoard);
+        localStorage.setItem('game2048_touch_board_only', useBoard);
+    });
+});
+</script>
+{% endblock %}

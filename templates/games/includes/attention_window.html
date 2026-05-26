@@ -1,0 +1,131 @@
+{% load static %}
+<!-- Модальное окно для подтверждения действий -->
+<div class="modal fade" id="attentionModal" tabindex="-1" aria-labelledby="attentionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="attentionModalLabel">
+                    <i class="fas fa-exclamation-triangle text-warning"></i>
+                    Подтверждение действия
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="attentionModalBody">
+                <!-- Содержимое модального окна будет подставляться через JavaScript -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                <button type="button" class="btn btn-primary" id="attentionModalConfirmBtn">
+                    <i class="fas fa-check"></i> Подтвердить
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript для работы с модальным окном -->
+<script>
+function showAttentionModal(title, message, confirmCallback) {
+    // Устанавливаем заголовок
+    document.getElementById('attentionModalLabel').innerHTML = 
+        '<i class="fas fa-exclamation-triangle text-warning"></i> ' + title;
+    
+    // Устанавливаем сообщение
+    document.getElementById('attentionModalBody').innerHTML = message;
+    
+    // Показываем модальное окно
+    var modal = new bootstrap.Modal(document.getElementById('attentionModal'));
+    modal.show();
+    
+    // Настраиваем обработчик подтверждения
+    var confirmBtn = document.getElementById('attentionModalConfirmBtn');
+    confirmBtn.onclick = function() {
+        modal.hide();
+        if (typeof confirmCallback === 'function') {
+            confirmCallback();
+        }
+    };
+}
+
+// Функция для подтверждения начала новой игры
+function confirmStartNewGame(gameId, level) {
+    showAttentionModal(
+        'Начать новую игру?',
+        'Вы уверены, что хотите завершить текущую игру и начать новую?<br><br><strong>Внимание:</strong> Текущая сессия будет завершена как "брошенная".',
+        function() {
+            // Создаем форму и отправляем ее
+            var form = document.createElement('form');
+            form.method = 'POST';
+            // Добавляем уровень в URL, если он указан
+            form.action = '/games/start_new/' + gameId + '/' + (level ? '?level=' + level : '');
+            
+            // Добавляем CSRF токен
+            var csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+            if (csrfToken) {
+                var csrfInput = document.createElement('input');
+                csrfInput.type = 'hidden';
+                csrfInput.name = 'csrfmiddlewaretoken';
+                csrfInput.value = csrfToken.value;
+                form.appendChild(csrfInput);
+            } else {
+                // Если CSRF токен не найден в DOM, пытаемся получить его из cookies
+                var csrfTokenFromCookie = getCsrfTokenFromCookie();
+                if (csrfTokenFromCookie) {
+                    var csrfInput = document.createElement('input');
+                    csrfInput.type = 'hidden';
+                    csrfInput.name = 'csrfmiddlewaretoken';
+                    csrfInput.value = csrfTokenFromCookie;
+                    form.appendChild(csrfInput);
+                }
+            }
+            
+            document.body.appendChild(form);
+            form.submit();
+        }
+    );
+}
+
+// Функция для получения CSRF токена из cookies
+function getCsrfTokenFromCookie() {
+    var name = 'csrftoken=';
+    var decodedCookie = decodeURIComponent(document.cookie);
+    var ca = decodedCookie.split(';');
+    for(var i = 0; i < ca.length; i++) {
+        var c = ca[i];
+        while (c.charAt(0) == ' ') {
+            c = c.substring(1);
+        }
+        if (c.indexOf(name) == 0) {
+            return c.substring(name.length, c.length);
+        }
+    }
+    return null;
+}
+
+// Функция для подтверждения сдачи игры
+function confirmSurrenderGame(sessionId) {
+    showAttentionModal(
+        'Сдаться в игре?',
+        'Вы уверены, что хотите сдаться?<br><br><strong>Внимание:</strong> Игра будет завершена как "проигранная".',
+        function() {
+            // Создаем форму и отправляем ее
+            var form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/games/surrender/' + sessionId + '/';
+            
+            // Добавляем CSRF токен
+            var csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+            if (csrfToken) {
+                var csrfInput = document.createElement('input');
+                csrfInput.type = 'hidden';
+                csrfInput.name = 'csrfmiddlewaretoken';
+                csrfInput.value = csrfToken.value;
+                form.appendChild(csrfInput);
+            }
+            
+            document.body.appendChild(form);
+            form.submit();
+        }
+    );
+}
+</script>

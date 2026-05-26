@@ -1,0 +1,153 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Интеллектуальные игры{% endblock %}</title>
+    <link rel="icon" type="image/png" href="{% static 'images/logo.png' %}">
+    
+    {% comment %} Font Awesome - Иконки {% endcomment %}
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    {% comment %} Bootstrap CSS - Обязательно для работы модальных окон  {% endcomment %}
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    {% comment %} Собственные стили {% endcomment %}
+    <link href="{% static 'css/style.css' %}" rel="stylesheet">
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    {% comment %} Навигационная панель {% endcomment %}
+    <nav>
+        <div class="nav-container text-center">
+            <a class="nav-brand" href="{% url 'home' %}">
+                <img src="{% static 'images/logo.png' %}" alt="Логотип">
+                Интеллектуальные игры
+            </a>
+            
+            <input type="checkbox" id="nav-toggle" class="nav-toggle">
+            <label for="nav-toggle" class="nav-burger"></label>
+            
+            <div class="nav-menu">
+                <ul>
+                    <li><a href="{% url 'home' %}">Главная</a></li>
+                    <li><a href="{% url 'games:game_list' %}">Игры</a></li>
+                    <li><a href="{% url 'games:leaderboard' %}">Таблица лидеров</a></li>
+                    <li><a href="{% url 'users:users_list' %}">Пользователи</a></li>
+                </ul>
+                
+                <ul>
+                    {% if user.is_authenticated %}
+                        <li><a href="{% url 'users:profile' %}" class="d-flex align-items-center">
+                            <img src="{{ user.userprofile.avatar_url }}" alt="{{ user.username }}" class="icon-avatar icon-avatar-nav me-1">
+                            {{ user.username }}
+                        </a></li>
+                        <li>
+                            <a class="d-flex" href="{% url 'users:logout' %}">
+                            <img src="{% static 'images/icon-logout.png' %}" alt="Иконка выхода" class="rounded-circle me-1" style="width: 24px; height: 24px; object-fit: cover;">
+                               Выйти
+                            </a>
+                        </li>
+                    {% else %}
+                        <li><a href="{% url 'users:login' %}"><i class="fas fa-sign-in-alt"></i> Войти</a></li>
+                        <li><a href="{% url 'users:register' %}"><i class="fas fa-user-plus"></i> Регистрация</a></li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+    {% comment %} Основной контент {% endcomment %}
+    <div class="content-wrapper {% block background_style %}background-default{% endblock %}">
+        {% comment %} Сообщения {% endcomment %}
+        {% if messages %}
+            <div class="container">
+                {% for message in messages %}
+                    <div class="alert alert-dismissible fade show d-flex align-items-center">
+                        {{ message }}
+                        <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Закрыть"></button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <main class="container">
+            {% block content %}
+            Содержимое по умолчанию не определено
+            {% endblock %}
+        </main>
+    </div>
+
+    {# Футер #}
+    <footer>
+        <div class="container text-center">
+            <p>&copy; 2026 Brain Arena - Интеллектуальные игры. Все права защищены.</p>
+            
+            <p>
+                <a href="{% url 'confidential' %}"><i class="fas fa-handshake"></i> Политика конфиденциальности</a>
+            </p>
+            <p>
+                <a href="{% url 'about' %}"><i class="fas fa-info-circle"></i> О нас</a>
+            </p>
+            <p>
+                <a href="/media/files/Manual.docx" target="_blank"><i class="fas fa-download"></i> Скачать руководство по эксплуатации</a>
+            </p>
+            
+        </div>
+    </footer>
+
+    {# Bootstrap JS обязателен для работы #}
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    {# Модальное окно для просмотра изображений #}
+    <div class="modal fade" id="imageModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-xl">
+            <div class="modal-content bg-transparent border-0 shadow-none">
+                <div class="modal-body p-0 text-center">
+                    <div class="d-inline-block position-relative">
+                        <img src="" alt="Изображение" id="modalImage" class="img-fluid" style="max-height: 90vh;">
+                        <div class="bg-dark bg-opacity-25 rounded position-absolute top-0 end-0 m-1" style="z-index: 10;">
+                            <button type="button" class="btn-close btn-close-white m-1" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {# jQuery #}
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    {# Custom JS #}
+    <script src="{% static 'js/main.js' %}"></script>
+    
+    <script>
+    // Lightbox — открытие/закрытие изображений в модальном окне
+    document.addEventListener('click', function(e) {
+        var target = e.target.closest('.game-description img, .description img, .img-open-space img, img.open');
+        if (target) {
+            // Исключаем изображения внутри навигации
+            if (target.closest('nav')) return;
+
+            e.preventDefault();
+            var modal = document.getElementById('imageModal');
+            var modalImg = document.getElementById('modalImage');
+            var bsModal = bootstrap.Modal.getInstance(modal);
+            
+            // Если модальное окно уже открыто и src совпадает — закрываем
+            if (bsModal && bsModal._isShown && modalImg.src === target.src) {
+                bsModal.hide();
+            } else {
+                // Иначе открываем с новым src
+                modalImg.src = target.src;
+                if (!bsModal) {
+                    bsModal = new bootstrap.Modal(modal);
+                }
+                bsModal.show();
+            }
+        }
+    });
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

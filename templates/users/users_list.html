@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Пользователи - Интеллектуальные игры{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="page-header">
+        <h2>
+            <img src="{% static 'images/icon-users.png' %}" class="icon-big"> Пользователи сайта
+        </h2>
+    </div>
+    
+    <div class="cards-grid">
+        {% for user in users %}
+        <div class="card user-card">
+            <div class="card-body">
+                <div class="user-header">
+                    <img src="{{ user.userprofile.avatar_url }}" class="icon-avatar icon-avatar-users" alt="Аватар">
+                    <div class="user-info">
+                        <h5 class="username">{{ user.username }}</h5>
+                    {% if user.first_name or user.last_name %}
+                            <span class="user-fullname">{{ user.first_name }} {{ user.last_name }}</span>
+                        {% endif %}
+                    </div>
+                </div>                
+                {% if user.userprofile.is_public %}
+                    <div class="user-stats">
+                        <h6><i class="fas fa-gamepad"></i> Статистика игр:</h6>
+                        <div class="stats-grid">
+                            <div class="stat-item">
+                                <h6 class="stat-value stat-primary">{{ user.total_games|default:0 }}</h6>
+                                <span class="stat-label">Игр сыграно</span>
+                            </div>
+                            <div class="stat-item">
+                                <h6 class="stat-value stat-success">{{ user.games_won|default:0 }}</h6>
+                                <span class="stat-label">Побед</span>
+                            </div>
+                            <div class="stat-item">
+                                <h6 class="stat-value stat-danger">{{ user.games_lost|default:0 }}</h6>
+                                <span class="stat-label">Проигрышей</span>
+                            </div>
+                        </div>
+                        <div class="win-rate">
+                            <span>Процент побед:</span>
+                            <span class="win-rate-badge">{{ user.win_rate|floatformat:1 }}%</span>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="profile-private">
+                        <i class="fas fa-lock"></i>
+                        <p>Профиль закрыт</p>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="card-profile-footer">
+                <a href="{% url 'users:user_profile' user.username %}" class="btn btn-outline">
+                    <i class="fas fa-eye"></i> Посмотреть профиль
+                </a>
+            </div>
+        </div>
+        {% empty %}
+        <div class="empty-state">
+            <div class="alert text-center">
+                <i class="fas fa-info-circle"></i>
+                <h4>Пользователи не найдены</h4>
+                <p>На сайте пока нет зарегистрированных пользователей.</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

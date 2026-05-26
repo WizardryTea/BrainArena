@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block title %}Редактирование профиля{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h3><i class="fas fa-user-edit"></i> Редактирование профиля</h3>
+            </div>
+            <div class="card-body">
+                 {% comment %} Основная форма редактирования профиля {% endcomment %}
+                <form method="post" enctype="multipart/form-data" id="profile-form">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="save_profile">
+                    
+                    <div class="row">
+                        <div class="col-12">
+                            <h5>Основная информация</h5>
+                            {{ user_form|crispy }}
+                        </div>
+
+                        <div class="col-12">
+                            <h5>Дополнительная информация</h5>
+                            {% comment %} Отображение текущего аватара {% endcomment %}
+                            {% if profile_form.instance.avatar %}
+                            <div class="mb-4">
+                                <label class="form-label">Текущий аватар:</label>
+                                <div class="d-flex justify-content-center align-items-center">
+                                    <img src="{{ profile_form.instance.avatar.url }}" 
+                                         alt="Аватар" 
+                                         class="img-thumbnail rounded-circle current-avatar" 
+                                         style="width: 150px; height: 150px; object-fit: cover;">
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            {% comment %} Блок готовых аватаров {% endcomment %}
+                            {% if base_avatars %}
+                            <div class="mb-4">
+                                <label class="form-label fw-bold">Коллекция готовых аватаров:</label>
+                                <div class="row">
+                                    {% for avatar in base_avatars %}
+                                    <div class="col-3 col-sm-2 col-md-2 avatar-thumbnail-col mb-3 text-center">
+                                        <button type="button" 
+                                                class="btn btn-link p-0 border-0 avatar-select-btn w-100"
+                                                data-avatar-name="{{ avatar.name }}"
+                                                title="Выбрать данный аватар">
+                                            <img src="{{ avatar.url }}" 
+                                                alt="Аватар {{ avatar.name }}"
+                                                class="avatar-thumbnail w-100 border border-2 border-dark rounded-2
+                                                    {% if profile_form.instance.avatar and profile_form.instance.avatar.name == 'avatars_base/'|add:avatar.name %}
+                                                        border-primary border-3
+                                                    {% else %}
+                                                        border-secondary
+                                                    {% endif %}"
+                                            >
+                                        </button>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                <small class="text-muted">Нажмите на аватар для мгновенного выбора и установки</small>
+                            </div>
+                            {% endif %}
+
+                            {{ profile_form|crispy }}
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4 d-flex flex-column flex-sm-row gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg flex-fill">
+                            <i class="fas fa-save"></i> Сохранить изменения
+                        </button>
+                        <a href="{% url 'users:profile' %}" class="btn btn-secondary btn-lg flex-fill">
+                            <i class="fas fa-times"></i> Отмена
+                        </a>
+                    </div>
+                </form>
+                
+                {% comment %} Скрытая форма для выбора аватаров {% endcomment %}
+                {% if base_avatars %}
+                <form method="post" id="avatar-select-form" style="display: none;">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="select_base_avatar">
+                    <input type="hidden" name="base_avatar" id="selected-avatar">
+                </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if base_avatars %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Обработчик выбора аватара
+    document.querySelectorAll('.avatar-select-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const avatarName = this.dataset.avatarName;
+            
+            // Устанавливаем выбранный аватар в скрытую форму
+            document.getElementById('selected-avatar').value = avatarName;
+            
+            // Копируем ВСЕ значения из основной формы перед отправкой
+            const mainForm = document.getElementById('profile-form');
+            const avatarForm = document.getElementById('avatar-select-form');
+            
+            // Переносим все поля из основной формы
+            Array.from(mainForm.querySelectorAll('input, select, textarea')).forEach(field => {
+                if (field.name && field.name !== 'csrfmiddlewaretoken' && field.name !== 'action') {
+                    let input = avatarForm.querySelector(`[name="${field.name}"]`);
+                    if (!input) {
+                        input = document.createElement('input');
+                        input.type = 'hidden';
+                        input.name = field.name;
+                        avatarForm.appendChild(input);
+                    }
+                    if (field.type === 'checkbox') {
+                        input.value = field.checked ? 'on' : '';
+                    } else if (field.type !== 'file') {
+                        input.value = field.value;
+                    }
+                }
+            });
+            
+            // Отправляем форму
+            document.getElementById('avatar-select-form').submit();
+        });
+    });
+});
+</script>
+{% endif %}
+{% endblock %}

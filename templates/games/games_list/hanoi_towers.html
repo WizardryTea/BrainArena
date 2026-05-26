@@ -1,0 +1,542 @@
+{% extends "games/base_game.html" %}
+{% load static %}
+
+{% block game_content %}
+
+<style>
+    
+/*Для счетчика ходов*/
+.game {
+    text-align: center;
+}
+
+.disk {
+    height: 20px;
+    margin: 5px 0;
+    border-radius: 4px;
+    cursor: grab;
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    font-size: 12px;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.disk[data-size="1"] { width: 15%; background: rgb(249, 41, 41); }
+.disk[data-size="2"] { width: 27%; background: rgb(253, 160, 31); }
+.disk[data-size="3"] { width: 39%; background: rgb(224, 220, 0); }
+.disk[data-size="4"] { width: 51%; background: rgb(33, 255, 55); }
+.disk[data-size="5"] { width: 63%; background: rgb(11, 236, 206); }
+.disk[data-size="6"] { width: 75%; background: #2b0df1; }
+.disk[data-size="7"] { width: 87%; background: rgb(163, 0, 204); }
+.disk[data-size="8"] { width: 95%; background: rgb(153, 0, 102); }
+
+body.monochrome-disks .disk[data-size] {
+    background: linear-gradient(180deg, #af7035 0%, #a8611e 100%);
+}
+
+body.hide-disk-numbers .disk {
+    font-size: 0;
+    text-shadow: none;
+}
+
+.tower-stand {
+    width: 100%;
+    max-width: 100%;
+    height: 6px;
+    background: linear-gradient(180deg, #6B4226 0%, #3D2512 100%);
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+}
+
+.towers {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 40px;
+}
+
+.tower {
+    width: 100%;
+    height: 300px;
+    border: 2px solid #44444474;
+    background: #e8e8e886;
+    display: flex;
+    flex-direction: column-reverse;
+    align-items: center;
+    margin-bottom: -6px;
+    box-sizing: border-box;
+    padding: 0 5px;
+    overflow: hidden;
+}
+
+.tower-container {
+    position: relative;
+    width: 30%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Вертикальная палка (ось) в ентре башни */
+.tower::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 8px;
+    height: 95%;
+    background: linear-gradient(180deg, #8B5A2B 0%, #5D3A1A 100%);
+    border-radius: 4px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    z-index: 0; /* Меньше чем у дисков */
+    pointer-events: none; /* Прозрачность для кликов */
+}
+
+/* Адаптивность для мобильных устройств */
+@media (max-width: 768px) {
+    .tower {
+        height: 220px;
+    }
+    
+    .disk {
+        height: 18px;
+        margin: 3px 0;
+        font-size: 11px;
+    }
+    
+    .towers {
+        margin-top: 20px;
+        gap: 8px;
+    }
+    
+    .tower-container {
+        width: 32%;
+    }
+}
+
+@media (max-width: 480px) {
+    .tower {
+        height: 200px;
+    }
+    
+    .disk {
+        height: 16px;
+        margin: 2px 0;
+        font-size: 10px;
+    }
+
+    .switch-container .form-check-label {
+        font-size: 0.8rem;
+    }
+}
+
+.switch-container{
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+</style>
+
+<div class="game">
+    <div class="mb-3 d-flex justify-content-between align-items-center">
+        <span class="fs-5">Ходы: <span id="steps">{{ session.data.moves|default:0 }}</span></span>
+        
+        <div class="switch-container">
+        <!-- Переключатель цветов -->
+        <div class="form-check form-switch ms-3">
+            <input class="form-check-input" type="checkbox" id="numberDisplaySwitch">
+            <label class="form-check-label" for="numberDisplaySwitch">
+                <i class="fas fa-font"></i> Номера дисков
+            </label>
+        </div>
+        
+        <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" id="colorSchemeSwitch" checked>
+            <label class="form-check-label" for="colorSchemeSwitch">
+                <i class="fas fa-palette"></i> Цветные диски
+            </label>
+        </div>
+        </div>
+        
+    </div>
+    
+    <div class="towers">
+        <div class="tower-container">
+            <div class="tower" data-index="0"></div>
+            <div class="tower-stand"></div> 
+        </div>
+
+        <div class="tower-container">
+            <div class="tower" data-index="1"></div>
+            <div class="tower-stand"></div>
+        </div>
+
+        <div class="tower-container">
+            <div class="tower" data-index="2"></div>
+            <div class="tower-stand"></div>
+        </div>
+    </div>
+
+    <!--ДЛЯ ОТЛАДКИ
+    <form method="post">
+        {% csrf_token %}
+        <input type="submit" name="action" value="win" class="btn btn-success btn-lg w-100">
+    </form>
+    -->
+</div>
+
+<script>
+const level = {{ session.data.level|default:3 }};
+
+// Инициализируем towers из данных сессии
+let towers = {{ session.data.pegs|default:"[[], [], []]"|safe }};
+let steps = {{ session.data.moves|default:0 }};
+
+const towersDOM = document.querySelectorAll('.tower');
+const stepsEl = document.getElementById('steps');
+
+function render() {
+    towersDOM.forEach(t => t.innerHTML = '');
+
+    towers.forEach((tower, i) => {
+        tower.forEach(size => {
+            const disk = document.createElement('div');
+            disk.className = 'disk';
+            disk.draggable = true;
+            disk.dataset.size = size;
+
+            disk.addEventListener('dragstart', dragStart);
+            disk.addEventListener('touchstart', touchStart, { passive: true });
+            disk.textContent = size;
+            towersDOM[i].appendChild(disk);
+        });
+    });
+}
+
+let draggedDisk = null;
+let fromTower = null;
+let selectedDisk = null;
+let selectedFromTower = null;
+
+function dragStart(e) {
+    const disk = e.target;
+    const size = parseInt(disk.dataset.size);
+
+    // Проверяем, что это верхний диск
+    const towerIndex = [...towersDOM].indexOf(disk.parentElement);
+    const tower = towers[towerIndex];
+
+    if (tower[tower.length - 1] !== size) {
+        e.preventDefault();
+        return;
+    }
+
+    draggedDisk = size;
+    fromTower = towerIndex;
+}
+
+// Обработка начала касания для мобильных устройств
+function touchStart(e) {
+    const disk = e.target;
+    const size = parseInt(disk.dataset.size);
+    const towerIndex = [...towersDOM].indexOf(disk.parentElement);
+    const tower = towers[towerIndex];
+    
+    // Проверяем что это верхний диск
+    if (tower[tower.length - 1] !== size) {
+        return;
+    }
+    
+    // Если уже есть выбранный другой диск - снимаем выделение
+    if (selectedDisk !== null && selectedFromTower !== towerIndex) {
+        selectedDisk = null;
+        selectedFromTower = null;
+        render();
+    }
+}
+
+towersDOM.forEach((towerEl, index) => {
+    towerEl.addEventListener('dragover', e => e.preventDefault());
+
+    towerEl.addEventListener('drop', (e) => {
+        e.preventDefault();
+        if (draggedDisk === null || fromTower === null) return;
+
+        const toPeg = index;
+        const fromPeg = fromTower;
+        
+        // Если положили на тот же самый стержень - отменяем ход
+        if (fromPeg === toPeg) {
+            draggedDisk = null;
+            fromTower = null;
+            return;
+        }
+
+        // Локальная валидация: нельзя класть больший на меньший
+        const targetTower = towers[toPeg];
+        if (targetTower.length > 0 && targetTower[targetTower.length - 1] < draggedDisk) {
+            // Неверный ход - не отправляем на сервер
+            draggedDisk = null;
+            fromTower = null;
+            return;
+        }
+
+        // Локальное перемещение (оптимистичный UI)
+        towers[fromPeg].pop();
+        targetTower.push(draggedDisk);
+        
+        draggedDisk = null;
+        fromTower = null;
+        
+        // Обновляем UI
+        render();
+        
+        // Отправляем ход на сервер
+        makeServerMove(fromPeg, toPeg);
+    });
+
+    // Обработка тапа по башне для сенсорного ввода
+    towerEl.addEventListener('touchend', function(e) {
+        e.preventDefault();
+        
+        if (selectedDisk !== null) {
+            // Уже есть выбранный диск - пытаемся положить
+            const toPeg = index;
+            const fromPeg = selectedFromTower;
+            
+            // Если положили на тот же самый стержень - снимаем выделение и отменяем ход
+            if (fromPeg === toPeg) {
+                selectedDisk = null;
+                selectedFromTower = null;
+                render();
+                return;
+            }
+            
+            // Локальная валидация
+            const targetTower = towers[toPeg];
+            if (targetTower.length > 0 && targetTower[targetTower.length - 1] < selectedDisk) {
+                // Неверный ход - снимаем выделение
+                selectedDisk = null;
+                selectedFromTower = null;
+                render();
+                return;
+            }
+
+            // Выполняем ход
+            towers[fromPeg].pop();
+            targetTower.push(selectedDisk);
+            
+            selectedDisk = null;
+            selectedFromTower = null;
+            
+            render();
+            makeServerMove(fromPeg, toPeg);
+            
+        } else {
+            // Ничего не выбрано - пытаемся взять верхний диск
+            const tower = towers[index];
+            if (tower.length === 0) return;
+            
+            const topDisk = tower[tower.length - 1];
+            
+            selectedDisk = topDisk;
+            selectedFromTower = index;
+            
+            // Визуально выделяем выбранный диск
+            render();
+            setTimeout(() => {
+                const disks = towerEl.querySelectorAll('.disk');
+                if (disks.length > 0) {
+                    disks[disks.length - 1].style.transform = 'translateY(-10px)';
+                    disks[disks.length - 1].style.boxShadow = '0 5px 15px rgba(0,0,0,0.3)';
+                }
+            }, 10);
+        }
+    });
+});
+
+function makeServerMove(fromPeg, toPeg) {
+    fetch('', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': getCookie('csrftoken'),
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: `action={"type":"move","from":${fromPeg},"to":${toPeg}}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Server response:', data);
+        
+        // Проверяем, завершена ли игра (статус != active)
+        if (data.status && data.status !== 'active') {
+            // Обновляем счетчик ходов перед показом модального окна
+            if (data.state && data.state.moves !== undefined) {
+                steps = data.state.moves;
+                stepsEl.textContent = steps;
+            }
+            // Игра завершена - показываем модальное окно
+            console.log('Game ended, showing modal');
+            if (data.modal_html) {
+                const redirectUrl = data.redirect_url || '/games/';
+                showGameEndModal(data.modal_html, redirectUrl);
+            } else {
+                console.log('No modal_html in response');
+            }
+            return;
+        }
+        
+        if (data.success) {
+            // Сервер подтвердил ход - обновляем счетчик ходов
+            steps = data.state.moves;
+            stepsEl.textContent = steps;
+        } else if (data.error) {
+            // Ошибка сервера - откатываем ход
+            towers = data.state.pegs;
+            steps = data.state.moves;
+            stepsEl.textContent = steps;
+            render();
+            
+            // Показываем ошибку
+            alert(data.error);
+        }
+    })
+    .catch(error => console.error('Error:', error));
+}
+
+function showGameEndModal(modalHtml, redirectUrl) {
+    // Удаляем старое модальное окно, если оно есть
+    const existingModal = document.getElementById('gameEndModal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+    
+    // Создаем временный контейнер для парсинга HTML
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = modalHtml;
+    
+    // Находим модальное окно
+    const modalElement = tempDiv.querySelector('#gameEndModal');
+    
+    if (modalElement) {
+        // Вставляем модальное окно в DOM
+        document.body.appendChild(modalElement);
+        
+        // Показываем модальное окно
+        modalElement.classList.remove('fade');
+        const modal = new bootstrap.Modal(modalElement, {
+            backdrop: 'static',
+            keyboard: false
+        });
+        modal.show();
+        
+        // Запускаем таймер обратного отсчета
+        let countdown = 5;
+        const countdownElement = document.getElementById('countdownTimer');
+        
+        const countdownInterval = setInterval(function() {
+            countdown--;
+            if (countdownElement) {
+                countdownElement.textContent = countdown;
+            }
+            
+            if (countdown <= 0) {
+                clearInterval(countdownInterval);
+                window.location.href = redirectUrl;
+            }
+        }, 1000);
+    }
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+render();
+
+
+// Переключатель цветов
+document.addEventListener('DOMContentLoaded', function() {
+    const colorSwitch = document.getElementById('colorSchemeSwitch');
+    
+    // Функция применения цветовой схемы
+    function applyColorScheme(isColorful) {
+        if (isColorful) {
+            document.body.classList.remove('monochrome-disks');
+        } else {
+            document.body.classList.add('monochrome-disks');
+        }
+    }
+    
+    // Загружаем сохранённое состояние из localStorage
+    const savedState = localStorage.getItem('hanoi_colorful_disks');
+    
+    if (savedState !== null) {
+        // Если есть сохранённое состояние - используем его
+        const isColorful = savedState === 'true';
+        colorSwitch.checked = isColorful;
+        applyColorScheme(isColorful);
+    } else {
+        // Если нет сохранённого состояния - используем значение по умолчанию (включено)
+        colorSwitch.checked = true;
+        applyColorScheme(true);
+    }
+    
+    // Обработчик изменения переключателя
+    colorSwitch.addEventListener('change', function(e) {
+        const isColorful = e.target.checked;
+        applyColorScheme(isColorful);
+        // Сохраняем состояние в localStorage
+        localStorage.setItem('hanoi_colorful_disks', isColorful);
+    });
+    
+    // Переключатель отображения номеров на дисках
+    const numberSwitch = document.getElementById('numberDisplaySwitch');
+    
+    function applyNumberDisplay(showNumbers) {
+        if (showNumbers) {
+            document.body.classList.remove('hide-disk-numbers');
+        } else {
+            document.body.classList.add('hide-disk-numbers');
+        }
+    }
+    
+    // Загружаем сохранённое состояние номеров дисков
+    const savedNumbersState = localStorage.getItem('hanoi_show_numbers');
+    if (savedNumbersState !== null) {
+        const showNumbers = savedNumbersState === 'true';
+        numberSwitch.checked = showNumbers;
+        applyNumberDisplay(showNumbers);
+    } else {
+        // По умолчанию ВЫКЛЮЧЕНО
+        numberSwitch.checked = false;
+        applyNumberDisplay(false);
+    }
+    
+    // Обработчик изменения переключателя номеров
+    numberSwitch.addEventListener('change', function(e) {
+        const showNumbers = e.target.checked;
+        applyNumberDisplay(showNumbers);
+        localStorage.setItem('hanoi_show_numbers', showNumbers);
+    });
+});
+</script>
+
+{% endblock %}

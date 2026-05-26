@@ -1,0 +1,75 @@
+<!-- Прогресс по играм (вычисляется из GameSession) -->
+<div class="card" id="progress-section">
+    <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
+        <h5 class="mb-0"><i class="fas fa-trophy"></i> Прогресс по играм</h5>
+        {% if profile_user == user %}
+        <div class="form-check form-switch mb-0">
+            <input class="form-check-input" type="checkbox" id="showHiddenGames" 
+                   {% if show_hidden %}checked{% endif %}
+                   onchange="toggleHiddenGames(this.checked)">
+            <label class="form-check-label" for="showHiddenGames">
+                <small>Показывать недоступные (выключенные администратором) игры</small>
+            </label>
+        </div>
+        {% endif %}
+    </div>
+    <div class="card-body">
+        {% if user_games_progress %}
+            <div class="row">
+                {% for game_stats in user_games_progress %}
+                <div class="col-md-6 mb-3">
+                    <div class="card border">
+                        <div class="card-body">
+                            <h6 class="card-title progress-game-title">
+                                {% if game_stats.game__avatar %}
+                                    <img src="/{{ game_stats.game__avatar }}" alt="{{ game_stats.game__name }}" class="rounded me-2" style="width: 24px; height: 24px; object-fit: contain;">
+                                {% else %}
+                                    <i class="fas fa-puzzle-piece me-2"></i>
+                                {% endif %}
+                                {{ game_stats.game__name }}
+                            </h6>
+                            
+                            <div class="row text-center g-1">
+                                <div class="col-3">
+                                    <div class="border-end">
+                                        <h6 class="text-primary mb-0 progress-stat-number">{{ game_stats.total_games }}</h6>
+                                        <small class="text-muted progress-stat-label">Всего</small>
+                                    </div>
+                                </div>
+                                <div class="col-3">
+                                    <div class="border-end">
+                                        <h6 class="text-success mb-0 progress-stat-number">{{ game_stats.games_won }}</h6>
+                                        <small class="text-muted progress-stat-label">Побед</small>
+                                    </div>
+                                </div>
+                                <div class="col-3">
+                                    <div class="border-end">
+                                        <h6 class="text-danger mb-0 progress-stat-number">{{ game_stats.games_lost }}</h6>
+                                        <small class="text-muted progress-stat-label">Проигрышей</small>
+                                    </div>
+                                </div>
+                                <div class="col-3">
+                                    <div>
+                                        <h6 class="text-warning mb-0 progress-stat-number">{{ game_stats.games_surrendered }}</h6>
+                                        <small class="text-muted progress-stat-label">Сдался</small>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-1 text-center">
+                                <small class="text-muted">Процент побед: {{ game_stats.win_rate|floatformat:1 }}%</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center text-muted">
+                <i class="fas fa-gamepad fa-3x mb-3"></i>
+                <p>Пока нет игрового прогресса</p>
+                <a href="{% url 'games:game_list' %}" class="btn btn-primary">Начать играть</a>
+            </div>
+        {% endif %}
+    </div>
+</div>

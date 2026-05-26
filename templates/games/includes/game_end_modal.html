@@ -1,0 +1,188 @@
+{% if game_end_html %}
+<style>
+/* На мобильных — компактное модальное окно */
+@media (max-width: 767.98px) {
+    #gameEndModal .modal-dialog {
+        max-width: 300px;
+    }
+    #gameEndModal .modal-body {
+        padding-top: 1rem !important;
+        padding-bottom: 1rem !important;
+    }
+}
+/* На десктопах — максимально компактно */
+@media (min-width: 768px) {
+    #gameEndModal .modal-dialog {
+        max-width: 260px;
+    }
+    #gameEndModal .modal-content {
+        max-width: 260px;
+    }
+    #gameEndModal .modal-body {
+        padding: 0.2rem 0.3rem !important;
+    }
+    #gameEndModal .modal-body h5 {
+        font-size: 0.6rem !important;
+        margin-bottom: 0.1rem !important;
+    }
+    #gameEndModal .modal-body h5 i {
+        display: none !important;
+    }
+    /* Статистика — параграфы, иконки, hr */
+    #gameEndModal .game-stats {
+        margin-bottom: 0.05rem !important;
+        max-height: 2.5rem !important;
+        overflow: hidden !important;
+    }
+    #gameEndModal .game-stats p,
+    #gameEndModal .game-stats p.mb-2 {
+        font-size: 0.4rem !important;
+        margin-bottom: 0.02rem !important;
+        line-height: 1.15 !important;
+        padding: 0 !important;
+    }
+    #gameEndModal .game-stats .fs-5 {
+        font-size: 0.4rem !important;
+    }
+    #gameEndModal .game-stats i,
+    #gameEndModal .game-stats i.me-1,
+    #gameEndModal .game-stats i.me-2 {
+        display: none !important;
+    }
+    #gameEndModal .game-stats hr {
+        display: none !important;
+    }
+    /* Таблица истории попыток — максимальная специфичность */
+    html body #gameEndModal .table-responsive {
+        max-height: 1.4rem !important;
+        overflow: hidden !important;
+        margin-bottom: 0 !important;
+    }
+    html body #gameEndModal .table-responsive .history-table,
+    html body #gameEndModal .table-responsive table.history-table {
+        font-size: 0.2rem !important;
+        margin-bottom: 0 !important;
+    }
+    html body #gameEndModal .table-responsive .history-table tbody td,
+    html body #gameEndModal .table-responsive .history-table th,
+    html body #gameEndModal .table-responsive .history-table td,
+    html body #gameEndModal .table-responsive table td,
+    html body #gameEndModal .table-responsive table th,
+    html body #gameEndModal .table-responsive table.history-table tbody td,
+    html body #gameEndModal .table-responsive table.history-table td {
+        padding: 0.01rem 0.02rem !important;
+        font-size: 0.2rem !important;
+        line-height: 1 !important;
+        border-width: 0.5px !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+    }
+    html body #gameEndModal .table-responsive .history-table tbody td.guess-number,
+    html body #gameEndModal .table-responsive table.history-table tbody td.guess-number {
+        font-size: 0.2rem !important;
+    }
+    /* Заголовок "История попыток" */
+    #gameEndModal h5:not(#gameEndModalLabel):not(.modal-title) {
+        display: none !important;
+    }
+    /* Обратный отсчёт */
+    #gameEndModal .countdown-display {
+        margin-bottom: 0.05rem !important;
+    }
+    #gameEndModal .countdown-display #countdownTimer {
+        font-size: 0.75rem !important;
+    }
+    #gameEndModal .countdown-display p {
+        font-size: 0.4rem !important;
+        margin-bottom: 0 !important;
+    }
+    /* Кнопка */
+    #gameEndModal .btn {
+        font-size: 0.45rem !important;
+        padding: 0.1rem 0.25rem !important;
+    }
+    #gameEndModal .btn i {
+        font-size: 0.35rem !important;
+    }
+}
+/* Общие стили для модального окна (все разрешения) */
+#gameEndModal .modal-body {
+    max-height: 85vh;
+    overflow-y: auto;
+    padding: 1rem;
+}
+#gameEndModal .game-stats p {
+    margin-bottom: 0.25rem;
+    font-size: 0.8rem;
+}
+#gameEndModal .table-responsive {
+    font-size: 0.55rem;
+}
+#gameEndModal .table-responsive th,
+#gameEndModal .table-responsive td {
+    padding: 0.2rem 0.3rem;
+    white-space: nowrap;
+}
+</style>
+<div class="modal fade" id="gameEndModal" tabindex="-1" aria-labelledby="gameEndModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body text-center py-4">
+                <h5 class="mb-3">
+                    {% if session.status == 'win' %}
+                        <i class="fas fa-trophy text-warning me-2"></i>Победа!
+                    {% elif session.status == 'lose' %}
+                        <i class="fas fa-times-circle text-danger me-2"></i>Поражение
+                    {% elif session.status == 'surrender' %}
+                        <i class="fas fa-flag text-warning me-2"></i>Сдался
+                    {% else %}
+                        <i class="fas fa-flag me-2"></i>Игра завершена
+                    {% endif %}
+                </h5>
+                <div class="game-stats mb-2">
+                    {{ game_end_html|safe }}
+                </div>
+                <div class="countdown-display mb-1">
+                    <p class="text-muted mb-0 small">Перенаправление через:</p>
+                    <span id="countdownTimer" class="fw-bold text-primary">5</span>
+                    <span class="text-muted small">сек</span>
+                </div>
+                <a href="{{ redirect_url }}" class="btn btn-primary btn-sm">
+                    <i class="fas fa-chart-bar me-2"></i>Итоги
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function() {
+    var gameEndModal = document.getElementById('gameEndModal');
+    if (gameEndModal) {
+        if (gameEndModal.classList.contains('modal-initialized')) {
+            return;
+        }
+        gameEndModal.classList.add('modal-initialized');
+        gameEndModal.classList.remove('fade');
+        var modal = new bootstrap.Modal(gameEndModal, {
+            backdrop: 'static',
+            keyboard: false
+        });
+        modal.show();
+        var countdown = 5;
+        var countdownElement = document.getElementById('countdownTimer');
+        var redirectUrl = '{{ redirect_url|default:"/games/" }}';
+        var countdownInterval = setInterval(function() {
+            countdown--;
+            if (countdownElement) {
+                countdownElement.textContent = countdown;
+            }
+            if (countdown <= 0) {
+                clearInterval(countdownInterval);
+                window.location.href = redirectUrl;
+            }
+        }, 1000);
+    }
+})();
+</script>
+{% endif %}
