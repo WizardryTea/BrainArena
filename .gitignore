@@ -131,7 +131,6 @@ dmypy.json
 .pyre/
 
 # Django specific
-media/
 staticfiles/
 logs/
 *.log
@@ -168,6 +167,6 @@ Thumbs.db
 *.tmp
 *.temp
 
-# Загружаемые пользователями аватары в MEDIA
-media/avatars/*
+# Загружаемые пользователями аватары в MEDIA media/
+media/*
 !media/avatars/.gitkeep
