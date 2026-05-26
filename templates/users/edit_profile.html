@@ -30,13 +30,15 @@
                             <div class="mb-4">
                                 <label class="form-label">Текущий аватар:</label>
                                 <div class="d-flex justify-content-center align-items-center">
-                                    <img src="{{ profile_form.instance.avatar.url }}" 
-                                         alt="Аватар" 
-                                         class="img-thumbnail rounded-circle current-avatar" 
-                                         style="width: 150px; height: 150px; object-fit: cover;">
+                                    {% comment %} ИСПРАВЛЕНО: используем avatar_url вместо avatar.url {% endcomment %}
+                                    <img src="{{ profile_form.instance.avatar_url }}" 
+                                        alt="Аватар" 
+                                        class="img-thumbnail rounded-circle current-avatar" 
+                                        style="width: 150px; height: 150px; object-fit: cover;">
                                 </div>
                             </div>
                             {% endif %}
+
                             
                             {% comment %} Блок готовых аватаров {% endcomment %}
                             {% if base_avatars %}
