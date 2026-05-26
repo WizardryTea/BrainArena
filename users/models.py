@@ -35,39 +35,53 @@ class UserProfile(models.Model):
     is_public = models.BooleanField(default=True, verbose_name="Публичный профиль")
     show_hidden_games = models.BooleanField(default=True, verbose_name="Показывать выключенные игры")
     created_at = models.DateTimeField(auto_now_add=True)
-    
+        
     @property
     def avatar_url(self):
         """
         Всегда возвращает валидный URL аватара пользователя.
-        Если пользователь не загрузил свой аватар - возвращается дефолтный аватар.
-        Никогда не возвращает None.
         """
-        if self.avatar:
-            return self.avatar.url
-        
         from django.conf import settings
-        return f"{settings.MEDIA_URL}avatars_base/default.png"
-    
+        
+        # Если есть аватар
+        if self.avatar and self.avatar.name:
+            # Для базовых аватаров (из статики)
+            if self.avatar.name.startswith('avatars_base/'):
+                return f"{settings.STATIC_URL}{self.avatar.name}"
+            
+            # Для загруженных аватаров
+            try:
+                return self.avatar.url
+            except (ValueError, OSError):
+                # Если ошибка при получении URL
+                pass
+        
+        # Дефолтный аватар
+        return f"{settings.STATIC_URL}avatars_base/default.png"
+
+
     @staticmethod
     def get_base_avatars():
-        """Возвращает список базовых аватаров из avatars_base"""
+        """Возвращает список базовых аватаров из avatars_base в статике"""
         import os
         from django.conf import settings
         
         avatars = []
-        avatars_dir = os.path.join(settings.MEDIA_ROOT, 'avatars_base')
+        # ищем папку avatars_base в статических файлах
+        # исп-ем STATICFILES_DIRS для поиска
+        static_dir = settings.BASE_DIR / 'static'
+        avatars_dir = os.path.join(static_dir, 'avatars_base')
         
         if os.path.exists(avatars_dir):
             for filename in sorted(os.listdir(avatars_dir)):
                 if filename.lower().endswith(('.png', '.jpg', '.jpeg', '.gif')):
                     avatars.append({
                         'name': filename,
-                        'url': os.path.join(settings.MEDIA_URL, 'avatars_base', filename)
+                        'url': f"{settings.STATIC_URL}avatars_base/{filename}"
                     })
         
         return avatars
-        
+            
     class Meta:
         verbose_name = "Профиль пользователя"
         verbose_name_plural = "Профили пользователей"
@@ -91,7 +105,6 @@ def save_user_profile(sender, instance, **kwargs):
 
 
 # --- Сигналы для удаления файла аватара в случае удаления или изменения аватара ---
-
 @receiver(pre_save, sender=UserProfile)
 def delete_old_avatar_on_change(sender, instance, **kwargs):
     """Удаляет старый файл аватара из media/avatars при замене новым.
@@ -103,8 +116,10 @@ def delete_old_avatar_on_change(sender, instance, **kwargs):
         new = instance.avatar
         if old and old != new:
             old_path = old.path
-            # Only remove if stored in media/avatars/ (not avatars_base)
-            if os.path.exists(old_path) and '/avatars/' in old_path.replace('\\','/'):
+            # Удаляем ТОЛЬКО если это не базовый аватар
+            if (os.path.exists(old_path) and 
+                '/avatars/' in old_path.replace('\\','/') and
+                'avatars_base' not in old_path):
                 try:
                     os.remove(old_path)
                 except Exception:
@@ -114,11 +129,13 @@ def delete_old_avatar_on_change(sender, instance, **kwargs):
 
 @receiver(post_delete, sender=UserProfile)
 def delete_avatar_on_profile_delete(sender, instance, **kwargs):
-    """Удаляет файл аватара при удалении профиля (если он в avatars)."""
+    """Удаляет файл аватара при удалении профиля (если он в avatars, не базовый)."""
     if instance.avatar:
         try:
             path = instance.avatar.path
-            if os.path.exists(path) and '/avatars/' in path.replace('\\','/'):
+            if (os.path.exists(path) and 
+                '/avatars/' in path.replace('\\','/') and
+                'avatars_base' not in path):
                 os.remove(path)
         except Exception:
             pass

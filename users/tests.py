@@ -75,8 +75,7 @@ class UserProfileModelTest(TestCase):
     def test_get_base_avatars(self):
         """Проверка получения списка базовых аватаров"""
         from django.conf import settings
-        avatars_base_dir = os.path.join(settings.MEDIA_ROOT, 'avatars_base')
-
+        avatars_base_dir = os.path.join(settings.BASE_DIR, 'static', 'avatars_base')
         # Создаём временную директорию, если её нет
         os.makedirs(avatars_base_dir, exist_ok=True)
 

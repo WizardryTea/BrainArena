@@ -281,19 +281,20 @@ def edit_profile(request):
             # Обработка выбора готового аватара
             avatar_name = request.POST.get('base_avatar')
             if avatar_name:
-                # Проверяем существование файла
+                # Проверяем существование файла в статике
                 import os
                 from django.conf import settings
-                avatar_path = os.path.join(settings.MEDIA_ROOT, 'avatars_base', avatar_name)
+                avatar_path = os.path.join(settings.BASE_DIR, 'static', 'avatars_base', avatar_name)
                 
                 if os.path.exists(avatar_path):
+                    # ВАЖНО: Сохраняем путь относительно статики, НЕ используем MEDIA
                     profile.avatar.name = f'avatars_base/{avatar_name}'
                     profile.save()
                     messages.success(request, 'Аватар успешно выбран!')
                 else:
                     messages.error(request, 'Выбранный аватар не найден.')
             
-            # Перенаправляем на GET-запрос, чтобы избежать повторной отправки при обновлении страницы
+            # Перенаправляем на GET-запрос
             return redirect('users:edit_profile')
         
         elif action == 'save_profile':

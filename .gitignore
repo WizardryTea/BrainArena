@@ -168,3 +168,6 @@ Thumbs.db
 *.tmp
 *.temp
 
+# Загружаемые пользователями аватары в MEDIA
+media/avatars/*
+!media/avatars/.gitkeep

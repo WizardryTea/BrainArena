@@ -11,7 +11,7 @@ class ShifrGame(BaseEngine):
     template = "games/games_list/bulls_and_cows.html"
 
     name = "Быки и коровы"
-    avatar = "media/avatars_games/bulls_and_cows.png"
+    avatar = "static/avatars_games/bulls_and_cows.png"
     short_description = "Игра, в которой нужно угадать задуманную последовательность (4-значное число) за минимальное количество попыток"
     description = """<p>«Быки и коровы» — это классическая логическая игра, в которой нужно угадать задуманную последовательность (обычно 4-значное число) за минимальное количество попыток. Kлaccичecкaя лoгичecкaя игpa в coвpeмeннoм фopмaтe; Пpocтoй и пoнятный интepфeйc; Boзмoжнocть игpaть в oдинoчку; Tpeниpуeт мышлeниe, aнaлиз и пaмять; Пoдxoдит для дeтeй, cтудeнтoв и взpocлыx.</p>
 

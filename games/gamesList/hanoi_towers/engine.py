@@ -8,7 +8,7 @@ class HanoiTowers(BaseEngine):
     template = "games/games_list/hanoi_towers.html"
 
     name = "Ханойская башня"
-    avatar = "media/avatars_games/hanoi_towers.png"
+    avatar = "static/avatars_games/hanoi_towers.png"
     short_description = """Логическая игра с дисками и 3 стержнями"""
     description = """<p>Ханойская башня — это головоломка, где нужно перенести пирамиду из дисков с начального стержня на конечный, используя один промежуточный.</p>
 
@@ -64,12 +64,12 @@ class HanoiTowers(BaseEngine):
     <li>7. Переместить диск со стержня 1 на стержень 3</li>
 </ol>
 
-<img src="/media/files/disks3.gif" alt="Решение Ханойских башен для 3 дисков" class="hanoi-solution-image">
+<img src="/static/files/disks3.gif" alt="Решение Ханойских башен для 3 дисков" class="hanoi-solution-image">
 
 <hr>
 
 <p>На рисунке ниже представлено решение Ханойских башен для 4 дисков за 15 шагов.</p>
-<img src="/media/pictures/Решение Ханойские башни для 4 дисков.jpg" alt="Решение Ханойские башни для 4 дисков.jpg" class="hanoi-solution-image">
+<img src="/static/pictures/Решение Ханойские башни для 4 дисков.jpg" alt="Решение Ханойские башни для 4 дисков.jpg" class="hanoi-solution-image">
 
 <h3>Подсчёт количества шагов для решения версии на четыре диска</h3>
 <p>Теперь давайте посчитаем, сколько шагов потребуется для решения версии на четыре диска.</p>
