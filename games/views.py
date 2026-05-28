@@ -430,7 +430,7 @@ def leaderboard(request):
             levels_info[level_key] = level_info.get('name', level_key)
     
     # Сортируем уровни для последовательного отображения на странице
-    # Числовые ключи сортируются как числа, строковые — как строки
+    # Числовые ключи сортируются как числа, строковые как строки
     def _level_sort_key(item):
         key = item[0]
         try:

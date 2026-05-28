@@ -527,7 +527,7 @@ class ViewTest(TestCase):
         """Проверка старта игры для авторизованного пользователя"""
         self.client.login(username="viewuser", password="pass12345")
         response = self.client.get(reverse('games:start', args=[self.game.id]))
-        # Проверяем, что создана сессия и произошёл редирект на игру
+        # Проверяем, что создана сессия и произошел редирект на игру
         self.assertEqual(response.status_code, 302)
         session = GameSession.objects.filter(user=self.user, game=self.game, status='active').first()
         self.assertIsNotNone(session)

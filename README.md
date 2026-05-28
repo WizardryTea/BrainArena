@@ -35,6 +35,16 @@ https://fontawesome.ru/examples/
         Game.objects.update_or_create
 
 ### Развертывание проекта
+
+### Важно
+MEDIA обрабатывается только при использовании start_nginx.bat, это влияет только на кастомные аватары. Иначе можно использовать START.bat.
+
+ИЛИ
+
+Перейти по ссылке:
+https://wizardrytea.pythonanywhere.com
+
+
 ## I способ
 
 1. Установите и активируйте виртуальное окружение
