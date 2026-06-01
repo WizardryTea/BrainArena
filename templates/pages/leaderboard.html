@@ -85,7 +85,11 @@
                                                 </td>
                                                 <td>
                                                     <div class="d-flex align-items-center">
-                                                        <img src="{{ entry.user.userprofile.avatar_url }}" alt="{{ entry.user.username }}" class="icon-avatar icon-avatar-leaderboard me-2">
+                                                        <img
+                                                            src="{{ entry.user.userprofile.avatar_url }}"
+                                                            alt="{{ entry.user.username }}"
+                                                            class="icon-avatar icon-avatar-leaderboard me-2"
+                                                        >
                                                         <div>
                                                             <strong>{{ entry.user.username }}</strong>
                                                             {% if entry.user.first_name or entry.user.last_name %}
@@ -152,7 +156,12 @@
                                                         </td>
                                                         <td>
                                                             <div class="d-flex align-items-center">
-                                                                <img src="{{ user_entry.user.userprofile.avatar_url }}" alt="{{ user_entry.user.username }}" class="icon-avatar icon-avatar-leaderboard me-2">
+                                                                {# Аватар #}
+                                                                <img src="{{ user_entry.user.userprofile.avatar_url }}"
+                                                                    alt="{{ user_entry.user.username }}"
+                                                                    class="icon-avatar icon-avatar-leaderboard me-2"
+                                                                    onerror="this.onerror=null; this.src='{% static 'images/alt_on_error.png' %}';"
+                                                                >
                                                                 <div>
                                                                     <strong>{{ user_entry.user.username }}</strong>
                                                                     {% if user_entry.user.first_name or user_entry.user.last_name %}

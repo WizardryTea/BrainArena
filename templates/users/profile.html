@@ -7,9 +7,13 @@
 <div class="container">
     
     <div class="card text-center">
+        {# Аватар #}
+        <img src="{{ profile.avatar_url }}" 
+        class="open icon-avatar icon-avatar-profile mb-3 mx-auto" 
+        alt="Аватар" 
+        onerror="this.onerror=null; this.src='{% static 'images/alt_on_error.png' %}';"
+        >
         
-        <img src="{{ profile.avatar_url }}" class="open icon-avatar icon-avatar-profile mb-3 mx-auto" alt="Аватар">
-
         <h4>{{ profile_user.get_full_name|default:profile_user.username }}</h4>
         <p class="text-muted">@{{ profile_user.username }}</p>
         
@@ -141,7 +145,10 @@
                                 <div class="card-body">
                                         <h6 class="card-title">
                                             {% if session.game.avatar %}
-                                                <img src="/{{ session.game.avatar }}" alt="{{ session.game.name }}" class="rounded me-2" style="width: 24px; height: 24px; object-fit: contain;">
+                                                <img src="/{{ session.game.avatar }}"
+                                                alt="{{ session.game.name }}"
+                                                class="rounded me-2" style="width: 24px; height: 24px; object-fit: contain;"
+                                                onerror="if(!this.hasAttribute('data-error')){this.setAttribute('data-error','true');this.src='/static/images/alt_on_error.png'}">
                                             {% else %}
                                                 <i class="fas fa-puzzle-piece me-2"></i>
                                             {% endif %}

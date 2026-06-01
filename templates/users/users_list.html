@@ -16,7 +16,12 @@
         <div class="card user-card">
             <div class="card-body">
                 <div class="user-header">
-                    <img src="{{ user.userprofile.avatar_url }}" class="icon-avatar icon-avatar-users" alt="Аватар">
+                    {# Аватар #}
+                    <img src="{{ user.userprofile.avatar_url }}"
+                        class="icon-avatar icon-avatar-users"
+                        alt="Аватар"
+                        onerror="this.onerror=null; this.src='{% static 'images/alt_on_error.png' %}';"
+                    >
                     <div class="user-info">
                         <h5 class="username">{{ user.username }}</h5>
                     {% if user.first_name or user.last_name %}

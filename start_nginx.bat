@@ -39,12 +39,11 @@ echo [3/3] Запуск Django-сервера (DEBUG=False, порт 8000)...
 echo.
 echo  ===============================
 echo   Сайт доступен по адресу:
-echo   http://127.0.0.1:80
-echo   http://localhost:80
+echo   http://localhost
 echo  ===============================
 echo.
 
-python manage.py runserver 0.0.0.0:8000 --noreload
+python manage.py runserver 127.0.0.1:8000 --noreload
 
 REM Автоматически открыть браузер
 start http://localhost
