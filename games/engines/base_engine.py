@@ -7,7 +7,7 @@ class BaseEngine:
     description = None
     short_description = None
     levels = None
-    avatar = "media/avatars_games/game_base.png"
+    avatar = "static/avatars_games/game_base.png"
     
     def get_leaderboard_html(self, level_key, level_info) -> str:
         """

@@ -85,10 +85,11 @@
                                                 </td>
                                                 <td>
                                                     <div class="d-flex align-items-center">
-                                                        <img
-                                                            src="{{ entry.user.userprofile.avatar_url }}"
+                                                        
+                                                        <img src="{{ entry.user.userprofile.avatar_url }}"
                                                             alt="{{ entry.user.username }}"
                                                             class="icon-avatar icon-avatar-leaderboard me-2"
+                                                            onerror="this.onerror=null; this.src='{% static 'images/alt_on_error.png' %}';"
                                                         >
                                                         <div>
                                                             <strong>{{ entry.user.username }}</strong>
